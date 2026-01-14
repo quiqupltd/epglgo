@@ -13,6 +13,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
@@ -60,6 +62,34 @@ const (
 	CreateShipmentInvoiceJSONBodyChargeableWeightUnitKG CreateShipmentInvoiceJSONBodyChargeableWeightUnit = "KG"
 	CreateShipmentInvoiceJSONBodyChargeableWeightUnitLB CreateShipmentInvoiceJSONBodyChargeableWeightUnit = "LB"
 )
+
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	// CorrelationId Unique request correlation ID for debugging
+	CorrelationId *openapi_types.UUID `json:"correlationId,omitempty"`
+
+	// Data Response data (null on error)
+	Data   interface{} `json:"data"`
+	Errors *[]struct {
+		// Code Error code
+		Code *string `json:"code,omitempty"`
+
+		// Field Field path that caused the error
+		Field *string `json:"field,omitempty"`
+
+		// Message Error message
+		Message *string `json:"message,omitempty"`
+	} `json:"errors,omitempty"`
+
+	// Message Human-readable error message
+	Message *string `json:"message,omitempty"`
+
+	// Status Error status indicator
+	Status *string `json:"status,omitempty"`
+
+	// Timestamp Timestamp of the error response
+	Timestamp *time.Time `json:"timestamp,omitempty"`
+}
 
 // AuthenticateClientJSONBody defines parameters for AuthenticateClient.
 type AuthenticateClientJSONBody struct {
@@ -968,9 +998,7 @@ type CreateUpdateShipmentResponse struct {
 		// TrackingNumber A unique code assigned by the shipping company to monitor and trace the shipment’s progress.
 		TrackingNumber string `json:"trackingNumber"`
 	}
-	JSON400 *struct {
-		Errors *map[string][]string `json:"errors,omitempty"`
-	}
+	JSON400 *ErrorResponse
 }
 type CreateUpdateShipment201DetailsDeclaredWeightUnit string
 type CreateUpdateShipment201DetailsDimensionsUnit string
@@ -1053,10 +1081,7 @@ type CreateShipmentInvoiceResponse struct {
 		// TrackingNumber The unique tracking number associated with the shipment.
 		TrackingNumber string `json:"trackingNumber"`
 	}
-	JSON400 *struct {
-		Errors  *map[string][]string `json:"errors,omitempty"`
-		Message *string              `json:"message,omitempty"`
-	}
+	JSON400 *ErrorResponse
 }
 type CreateShipmentInvoice201ChargeableWeightUnit string
 
@@ -1407,9 +1432,7 @@ func ParseCreateUpdateShipmentResponse(rsp *http.Response) (*CreateUpdateShipmen
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Errors *map[string][]string `json:"errors,omitempty"`
-		}
+		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1496,10 +1519,7 @@ func ParseCreateShipmentInvoiceResponse(rsp *http.Response) (*CreateShipmentInvo
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Errors  *map[string][]string `json:"errors,omitempty"`
-			Message *string              `json:"message,omitempty"`
-		}
+		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

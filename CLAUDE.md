@@ -22,8 +22,9 @@ This project uses **git-flow** for development:
 ├── otel.go              # Manual: OpenTelemetry tracing helpers
 ├── generate.go          # go:generate directive
 ├── .oapi-codegen.yml    # oapi-codegen configuration
+├── OPENAPI_LOG.md       # Log of upstream API spec inconsistencies
 ├── spec/
-│   └── apispec.json     # OpenAPI 3.0 specification
+│   └── apispec.json     # OpenAPI 3.0 specification (with fixes applied)
 └── tmp/                 # Source API spec files (can be deleted after merge)
 ```
 
@@ -53,6 +54,18 @@ The generator uses `oapi-codegen` configured in `.oapi-codegen.yml`.
 - `POST /api/v1/auth/authenticate` - Authenticate and get JWT token
 - `POST /api/v1/shipment/create` - Create or update a shipment
 - `POST /api/v1/shipment/issueInvoice` - Create invoice for a shipment
+
+## OpenAPI Spec Fixes
+
+The upstream EPGL API spec sometimes has inconsistencies with actual API behavior. When fixing these:
+
+1. Apply fixes to `spec/apispec.json`
+2. Document the inconsistency in `OPENAPI_LOG.md` with:
+   - Date and related issue
+   - What the spec said vs actual API behavior
+   - Impact on generated code
+   - Fix applied
+3. Regenerate the client with `go generate ./...`
 
 ## Important Notes
 

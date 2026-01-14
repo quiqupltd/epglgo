@@ -7,7 +7,10 @@ tool (
 
 go 1.24.0
 
-require go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0
+require (
+	github.com/oapi-codegen/runtime v1.1.2
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0
+)
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -18,6 +21,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gotesttools/gotestfmt/v2 v2.5.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
