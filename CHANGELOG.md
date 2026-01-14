@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix error response schema to match actual API response structure ([#5](https://github.com/quiqupltd/epglgo/issues/5))
+
+### Added
+
+- OPENAPI_LOG.md to track upstream API spec inconsistencies
+
 ## [1.2.0] - 2026-01-14
 
 ### Added

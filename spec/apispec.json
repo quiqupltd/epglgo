@@ -1680,18 +1680,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "errors": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2183,27 +2172,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Shipment invoice details cannot be null."
-                    },
-                    "errors": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "example": {
-                        "trackingNumber": [
-                          "Tracking number is required."
-                        ]
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -4240,6 +4209,58 @@
           "value": 10
         },
         "x-readme-ref-name": "WeightDto"
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Error status indicator",
+            "example": "Error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "Validation failed."
+          },
+          "data": {
+            "nullable": true,
+            "description": "Response data (null on error)"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "description": "Error code",
+                  "example": "VALIDATION_ERROR"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Error message",
+                  "example": "unit is required."
+                },
+                "field": {
+                  "type": "string",
+                  "description": "Field path that caused the error",
+                  "example": "details.declaredWeight.unit"
+                }
+              }
+            }
+          },
+          "correlationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique request correlation ID for debugging"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the error response"
+          }
+        }
       }
     }
   },
