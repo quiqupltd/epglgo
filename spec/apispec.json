@@ -1,0 +1,4250 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Regulatory and Licensing - API",
+    "description": "API for managing shipment operations.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api-stg.epgl.ae",
+      "description": "Staging server"
+    }
+  ],
+  "paths": {
+    "/api/v1/auth/authenticate": {
+      "post": {
+        "summary": "Authenticates the client and generates a JWT token",
+        "operationId": "authenticateClient",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "description": "The authentication request containing client ID and client secret.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Represents the request used for authentication.",
+                "properties": {
+                  "clientId": {
+                    "type": "string",
+                    "description": "The client ID.",
+                    "example": "my-client-id"
+                  },
+                  "clientSecret": {
+                    "type": "string",
+                    "description": "The client secret.",
+                    "example": "my-client-secret"
+                  }
+                },
+                "required": [
+                  "clientId",
+                  "clientSecret"
+                ],
+                "x-readme-ref-name": "AuthenticateRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully authenticated and returned a JWT token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Represents the response returned after successful authentication.",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "description": "The JWT token.",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "tokenType": {
+                      "type": "string",
+                      "description": "The type of the token, typically \"bearer\".",
+                      "example": "bearer"
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "description": "The number of seconds until the token expires.",
+                      "example": 3600
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "tokenType",
+                    "expiresIn"
+                  ],
+                  "x-readme-ref-name": "AuthenticateResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid client_id or client_secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "Invalid client_id or client_secret."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error - Something went wrong on the server."
+          }
+        }
+      }
+    },
+    "/api/v1/shipment/create": {
+      "post": {
+        "summary": "Create/Update a shipment",
+        "operationId": "createUpdateShipment",
+        "tags": [
+          "Shipment"
+        ],
+        "requestBody": {
+          "description": "The shipment details to create/update.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Represents the overall details of a shipment.",
+                "required": [
+                  "trackingNumber",
+                  "sender",
+                  "receiver",
+                  "details"
+                ],
+                "properties": {
+                  "trackingNumber": {
+                    "type": "string",
+                    "description": "A unique code assigned by the shipping company to monitor and trace the shipment’s progress.",
+                    "example": "TRACK1234567890",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "sender": {
+                    "type": "object",
+                    "description": "Represents the contact and address details of the sender.",
+                    "required": [
+                      "name",
+                      "phone",
+                      "countryCode",
+                      "city"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the person or company sending the shipment.",
+                        "example": "John Doe",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The email address of the person or company sending the shipment.",
+                        "example": "john.doe@example.com",
+                        "minLength": 0,
+                        "maxLength": 255,
+                        "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "description": "The phone number of the person or company sending the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+                        "example": "+11234567890",
+                        "minLength": 1,
+                        "maxLength": 50,
+                        "pattern": "^\\+?[1-9]\\d{1,14}$"
+                      },
+                      "secondPhone": {
+                        "type": "string",
+                        "description": "An additional phone number of the person or company sending the shipment.",
+                        "example": "+10987654321",
+                        "minLength": 0,
+                        "maxLength": 50,
+                        "pattern": "^\\+?[1-9]\\d{1,14}$"
+                      },
+                      "countryCode": {
+                        "type": "string",
+                        "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+                        "example": "US",
+                        "minLength": 2,
+                        "maxLength": 2
+                      },
+                      "state": {
+                        "type": "string",
+                        "description": "The state or region of the address.",
+                        "example": "California",
+                        "minLength": 0,
+                        "maxLength": 100
+                      },
+                      "postCode": {
+                        "type": "string",
+                        "description": "The postal code or ZIP code of the address.",
+                        "example": "90210",
+                        "minLength": 0,
+                        "maxLength": 20
+                      },
+                      "city": {
+                        "type": "string",
+                        "description": "The city name of the address.",
+                        "example": "Beverly Hills",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "line1": {
+                        "type": "string",
+                        "description": "The first line of the address, typically including street name and number.",
+                        "example": "1234 Elm Street",
+                        "minLength": 0,
+                        "maxLength": 500
+                      },
+                      "line2": {
+                        "type": "string",
+                        "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+                        "example": "Apt 101",
+                        "minLength": 0,
+                        "maxLength": 500
+                      },
+                      "line3": {
+                        "type": "string",
+                        "description": "The third line of the address, often used for further details if needed.",
+                        "example": "Building A, Floor 2",
+                        "minLength": 0,
+                        "maxLength": 500
+                      }
+                    },
+                    "example": {
+                      "name": "Jane Smith",
+                      "email": "jane.smith@example.com",
+                      "phone": "+11234567890",
+                      "secondPhone": "+10987654321",
+                      "countryCode": "US",
+                      "state": "Texas",
+                      "postCode": "73301",
+                      "city": "Austin",
+                      "line1": "5678 Oak Avenue",
+                      "line2": "Suite 202",
+                      "line3": "Warehouse B"
+                    },
+                    "x-readme-ref-name": "SenderDto"
+                  },
+                  "receiver": {
+                    "type": "object",
+                    "description": "Represents the contact and address details of the receiver.",
+                    "required": [
+                      "name",
+                      "phone",
+                      "countryCode",
+                      "city"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the person or company receiving the shipment.",
+                        "example": "John Doe",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The email address of the person or company receiving the shipment.",
+                        "example": "john.doe@example.com",
+                        "minLength": 0,
+                        "maxLength": 255,
+                        "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "description": "The phone number of the person or company receiving the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+                        "example": "+11234567890",
+                        "minLength": 1,
+                        "maxLength": 50,
+                        "pattern": "^\\+?[1-9]\\d{1,14}$"
+                      },
+                      "secondPhone": {
+                        "type": "string",
+                        "description": "An additional phone number of the person or company receiving the shipment.",
+                        "example": "+10987654321",
+                        "minLength": 0,
+                        "maxLength": 50,
+                        "pattern": "^\\+?[1-9]\\d{1,14}$"
+                      },
+                      "countryCode": {
+                        "type": "string",
+                        "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+                        "example": "US",
+                        "minLength": 2,
+                        "maxLength": 2
+                      },
+                      "state": {
+                        "type": "string",
+                        "description": "The state or region of the address.",
+                        "example": "California",
+                        "minLength": 0,
+                        "maxLength": 100
+                      },
+                      "postCode": {
+                        "type": "string",
+                        "description": "The postal code or Zip Code of the address.",
+                        "example": "90210",
+                        "minLength": 0,
+                        "maxLength": 20
+                      },
+                      "city": {
+                        "type": "string",
+                        "description": "The city name of the address.",
+                        "example": "Beverly Hills",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "line1": {
+                        "type": "string",
+                        "description": "The first line of the address, typically including street name and number.",
+                        "example": "1234 Elm Street",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "line2": {
+                        "type": "string",
+                        "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+                        "example": "Apt 101",
+                        "minLength": 0,
+                        "maxLength": 500
+                      },
+                      "line3": {
+                        "type": "string",
+                        "description": "The third line of the address, often used for further details if needed.",
+                        "example": "Building A, Floor 2",
+                        "minLength": 0,
+                        "maxLength": 500
+                      }
+                    },
+                    "example": {
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "phone": "+11234567890",
+                      "secondPhone": "+10987654321",
+                      "countryCode": "US",
+                      "state": "California",
+                      "postCode": "90210",
+                      "city": "Beverly Hills",
+                      "line1": "1234 Elm Street",
+                      "line2": "Apt 101",
+                      "line3": "Building A, Floor 2"
+                    },
+                    "x-readme-ref-name": "ReceiverDto"
+                  },
+                  "details": {
+                    "type": "object",
+                    "description": "Represents the detailed information about a shipment.",
+                    "required": [
+                      "weight",
+                      "declaredWeight",
+                      "numberOfPieces",
+                      "pickupDate",
+                      "shippingType",
+                      "productCategory",
+                      "productType",
+                      "descriptionOfGoods"
+                    ],
+                    "properties": {
+                      "weight": {
+                        "description": "The weight provided by the customer or the volumetric or gross weight, whichever is higher.",
+                        "type": "object",
+                        "required": [
+                          "unit",
+                          "value"
+                        ],
+                        "properties": {
+                          "unit": {
+                            "type": "string",
+                            "description": "The unit of measurement used for the weight of the Shipment.",
+                            "example": "KG",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ]
+                          },
+                          "value": {
+                            "type": "number",
+                            "description": "The weight value.",
+                            "example": 10,
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "maximum": 999999,
+                            "exclusiveMaximum": true
+                          }
+                        },
+                        "example": {
+                          "unit": "KG",
+                          "value": 10
+                        },
+                        "x-readme-ref-name": "WeightDto"
+                      },
+                      "declaredWeight": {
+                        "description": "The weight used for billing purposes to charge your customer.",
+                        "type": "object",
+                        "required": [
+                          "unit",
+                          "value"
+                        ],
+                        "properties": {
+                          "unit": {
+                            "type": "string",
+                            "description": "The unit of measurement used for the weight of the Shipment.",
+                            "example": "KG",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ]
+                          },
+                          "value": {
+                            "type": "number",
+                            "description": "The weight value.",
+                            "example": 10,
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "maximum": 999999,
+                            "exclusiveMaximum": true
+                          }
+                        },
+                        "example": {
+                          "unit": "KG",
+                          "value": 10
+                        },
+                        "x-readme-ref-name": "WeightDto"
+                      },
+                      "cod": {
+                        "type": "object",
+                        "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                        "required": [
+                          "currencyCode",
+                          "amount"
+                        ],
+                        "properties": {
+                          "currencyCode": {
+                            "type": "string",
+                            "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                            "minLength": 3,
+                            "maxLength": 3,
+                            "example": "USD"
+                          },
+                          "amount": {
+                            "type": "number",
+                            "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                            "minimum": 0.01,
+                            "example": 100
+                          }
+                        },
+                        "example": {
+                          "currencyCode": "USD",
+                          "amount": 100
+                        },
+                        "x-readme-ref-name": "MoneyDto"
+                      },
+                      "customs": {
+                        "type": "object",
+                        "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                        "required": [
+                          "currencyCode",
+                          "amount"
+                        ],
+                        "properties": {
+                          "currencyCode": {
+                            "type": "string",
+                            "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                            "minLength": 3,
+                            "maxLength": 3,
+                            "example": "USD"
+                          },
+                          "amount": {
+                            "type": "number",
+                            "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                            "minimum": 0.01,
+                            "example": 100
+                          }
+                        },
+                        "example": {
+                          "currencyCode": "USD",
+                          "amount": 100
+                        },
+                        "x-readme-ref-name": "MoneyDto"
+                      },
+                      "deliveryCharges": {
+                        "type": "object",
+                        "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                        "required": [
+                          "currencyCode",
+                          "amount"
+                        ],
+                        "properties": {
+                          "currencyCode": {
+                            "type": "string",
+                            "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                            "minLength": 3,
+                            "maxLength": 3,
+                            "example": "USD"
+                          },
+                          "amount": {
+                            "type": "number",
+                            "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                            "minimum": 0.01,
+                            "example": 100
+                          }
+                        },
+                        "example": {
+                          "currencyCode": "USD",
+                          "amount": 100
+                        },
+                        "x-readme-ref-name": "MoneyDto"
+                      },
+                      "numberOfPieces": {
+                        "type": "integer",
+                        "description": "The total count of individual items or packages in the shipment.",
+                        "example": 3,
+                        "minimum": 1
+                      },
+                      "pickupDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date on which the shipment was collected.",
+                        "example": "2024-09-01T10:15:30Z"
+                      },
+                      "deliveryStatus": {
+                        "type": "string",
+                        "description": "The current status of the shipment.",
+                        "example": "In Transit"
+                      },
+                      "deliveryDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date on which the shipment was actually delivered.",
+                        "example": "2024-09-05T15:30:00Z"
+                      },
+                      "deliveryAttempts": {
+                        "type": "integer",
+                        "description": "The number of delivery attempts.",
+                        "example": 1
+                      },
+                      "shippingType": {
+                        "type": "string",
+                        "description": "Specifies whether the shipment is Domestic or International.",
+                        "example": "INT",
+                        "minLength": 3,
+                        "maxLength": 3,
+                        "enum": [
+                          "INT",
+                          "DOM"
+                        ]
+                      },
+                      "productCategory": {
+                        "type": "string",
+                        "description": "Defines the shipment category, such as Documents and Non-Documents.",
+                        "example": "Documents",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "productType": {
+                        "type": "string",
+                        "description": "Represents the service level of the shipment, such as Non-Priority, Standard, Priority, Premium, Same Day, Next Day, etc.",
+                        "example": "Same Day",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "descriptionOfGoods": {
+                        "type": "string",
+                        "description": "Provides a detailed description of the items in the shipment.",
+                        "example": "Smartphones",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "hsCodeDescription": {
+                        "type": "string",
+                        "description": "Describes the goods based on the Harmonized System (HS) code, used for international trade classification.",
+                        "minLength": 50,
+                        "maxLength": 200
+                      },
+                      "dimensions": {
+                        "type": "object",
+                        "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+                        "required": [
+                          "length",
+                          "width",
+                          "height",
+                          "unit"
+                        ],
+                        "properties": {
+                          "length": {
+                            "type": "number",
+                            "format": "double",
+                            "description": "Length must be greater than 0 and less than 99999.",
+                            "example": 150.5,
+                            "minimum": 0.01,
+                            "exclusiveMinimum": true,
+                            "maximum": 99999
+                          },
+                          "width": {
+                            "type": "number",
+                            "format": "double",
+                            "description": "Width must be greater than 0 and less than 99999.",
+                            "example": 75.2,
+                            "minimum": 0.01,
+                            "exclusiveMinimum": true,
+                            "maximum": 99999
+                          },
+                          "height": {
+                            "type": "number",
+                            "format": "double",
+                            "description": "Height must be greater than 0 and less than 99999.",
+                            "example": 55.3,
+                            "minimum": 0.01,
+                            "exclusiveMinimum": true,
+                            "maximum": 99999
+                          },
+                          "unit": {
+                            "type": "string",
+                            "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "enum": [
+                              "CM",
+                              "IN"
+                            ],
+                            "example": "CM"
+                          }
+                        },
+                        "example": {
+                          "length": 150.5,
+                          "width": 75.2,
+                          "height": 55.3,
+                          "unit": "CM"
+                        },
+                        "x-readme-ref-name": "DimensionsDto"
+                      }
+                    },
+                    "example": {
+                      "weight": {
+                        "unit": "KG",
+                        "value": 10
+                      },
+                      "declaredWeight": {
+                        "unit": "KG",
+                        "value": 10
+                      },
+                      "cod": {
+                        "currencyCode": "USD",
+                        "amount": 0
+                      },
+                      "customs": {
+                        "currencyCode": "USD",
+                        "amount": 10
+                      },
+                      "deliveryCharges": {
+                        "currencyCode": "USD",
+                        "amount": 0
+                      },
+                      "numberOfPieces": 3,
+                      "pickupDate": "2024-09-01T10:15:30Z",
+                      "deliveryStatus": "In Transit",
+                      "deliveryDate": "2024-09-05T15:30:00Z",
+                      "deliveryAttempts": 1,
+                      "shippingType": "INT",
+                      "productCategory": "Documents",
+                      "productType": "Same Day",
+                      "descriptionOfGoods": "Smartphones",
+                      "hsCodeDescription": "Mobile phones classified under HS code 851712",
+                      "dimensions": {
+                        "length": 150.5,
+                        "width": 75.2,
+                        "height": 55.3,
+                        "unit": "CM"
+                      }
+                    },
+                    "x-readme-ref-name": "ShipmentDetailsDto"
+                  },
+                  "items": {
+                    "type": "array",
+                    "description": "The details of the items contained in the shipment.",
+                    "items": {
+                      "type": "object",
+                      "description": "Represents the details of an individual item within a shipment.",
+                      "properties": {
+                        "description": {
+                          "type": "string",
+                          "description": "A brief summary of the item's features or nature.",
+                          "example": "iPhone 14",
+                          "maxLength": 200
+                        },
+                        "countryOfOrigin": {
+                          "type": "string",
+                          "description": "The country where the item was manufactured.",
+                          "example": "CN",
+                          "maxLength": 2
+                        },
+                        "quantity": {
+                          "type": "number",
+                          "description": "The number of units of a specific item.",
+                          "example": 2
+                        },
+                        "hsCode": {
+                          "type": "string",
+                          "description": "The Harmonized System code used for classifying goods in international trade.",
+                          "example": "851712",
+                          "maxLength": 100
+                        },
+                        "customsValue": {
+                          "type": "object",
+                          "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                          "required": [
+                            "currencyCode",
+                            "amount"
+                          ],
+                          "properties": {
+                            "currencyCode": {
+                              "type": "string",
+                              "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                              "minLength": 3,
+                              "maxLength": 3,
+                              "example": "USD"
+                            },
+                            "amount": {
+                              "type": "number",
+                              "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                              "minimum": 0.01,
+                              "example": 100
+                            }
+                          },
+                          "example": {
+                            "currencyCode": "USD",
+                            "amount": 100
+                          },
+                          "x-readme-ref-name": "MoneyDto"
+                        },
+                        "weight": {
+                          "type": "object",
+                          "description": "The weight of the Shipment.",
+                          "required": [
+                            "unit",
+                            "value"
+                          ],
+                          "properties": {
+                            "unit": {
+                              "type": "string",
+                              "description": "The unit of measurement used for the weight of the Shipment.",
+                              "example": "KG",
+                              "minLength": 2,
+                              "maxLength": 2,
+                              "enum": [
+                                "KG",
+                                "LB"
+                              ]
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "The weight value.",
+                              "example": 10,
+                              "minimum": 0,
+                              "exclusiveMinimum": true,
+                              "maximum": 999999,
+                              "exclusiveMaximum": true
+                            }
+                          },
+                          "example": {
+                            "unit": "KG",
+                            "value": 10
+                          },
+                          "x-readme-ref-name": "WeightDto"
+                        },
+                        "dimensions": {
+                          "type": "object",
+                          "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+                          "required": [
+                            "length",
+                            "width",
+                            "height",
+                            "unit"
+                          ],
+                          "properties": {
+                            "length": {
+                              "type": "number",
+                              "format": "double",
+                              "description": "Length must be greater than 0 and less than 99999.",
+                              "example": 150.5,
+                              "minimum": 0.01,
+                              "exclusiveMinimum": true,
+                              "maximum": 99999
+                            },
+                            "width": {
+                              "type": "number",
+                              "format": "double",
+                              "description": "Width must be greater than 0 and less than 99999.",
+                              "example": 75.2,
+                              "minimum": 0.01,
+                              "exclusiveMinimum": true,
+                              "maximum": 99999
+                            },
+                            "height": {
+                              "type": "number",
+                              "format": "double",
+                              "description": "Height must be greater than 0 and less than 99999.",
+                              "example": 55.3,
+                              "minimum": 0.01,
+                              "exclusiveMinimum": true,
+                              "maximum": 99999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                              "minLength": 2,
+                              "maxLength": 2,
+                              "enum": [
+                                "CM",
+                                "IN"
+                              ],
+                              "example": "CM"
+                            }
+                          },
+                          "example": {
+                            "length": 150.5,
+                            "width": 75.2,
+                            "height": 55.3,
+                            "unit": "CM"
+                          },
+                          "x-readme-ref-name": "DimensionsDto"
+                        }
+                      },
+                      "example": {
+                        "description": "iPhone 14",
+                        "countryOfOrigin": "CN",
+                        "quantity": 2,
+                        "hsCode": "851712",
+                        "customsValue": {
+                          "currencyCode": "USD",
+                          "amount": 500
+                        },
+                        "weight": {
+                          "unit": "KG",
+                          "value": 1.5
+                        },
+                        "dimensions": {
+                          "length": 30,
+                          "width": 20,
+                          "height": 10,
+                          "unit": "CM"
+                        }
+                      },
+                      "x-readme-ref-name": "ShipmentItemDto"
+                    }
+                  }
+                },
+                "example": {
+                  "trackingNumber": "TRACK1234567890",
+                  "sender": {
+                    "name": "Jane Smith",
+                    "phone": "+11234567890",
+                    "countryCode": "US",
+                    "city": "Austin"
+                  },
+                  "receiver": {
+                    "name": "John Doe",
+                    "phone": "+11234567890",
+                    "countryCode": "US",
+                    "city": "Beverly Hills"
+                  },
+                  "details": {
+                    "weight": {
+                      "unit": "KG",
+                      "value": 10
+                    },
+                    "declaredWeight": {
+                      "unit": "KG",
+                      "value": 10
+                    },
+                    "numberOfPieces": 3,
+                    "pickupDate": "2024-09-01T10:15:30Z",
+                    "shippingType": "INT",
+                    "productCategory": "Documents",
+                    "productType": "Same Day",
+                    "descriptionOfGoods": "Smartphones"
+                  },
+                  "items": [
+                    {
+                      "description": "iPhone 14",
+                      "countryOfOrigin": "CN",
+                      "quantity": 2
+                    }
+                  ]
+                },
+                "x-readme-ref-name": "ShipmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shipment created/updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Represents the overall details of a shipment.",
+                  "required": [
+                    "trackingNumber",
+                    "sender",
+                    "receiver",
+                    "details"
+                  ],
+                  "properties": {
+                    "trackingNumber": {
+                      "type": "string",
+                      "description": "A unique code assigned by the shipping company to monitor and trace the shipment’s progress.",
+                      "example": "TRACK1234567890",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "sender": {
+                      "type": "object",
+                      "description": "Represents the contact and address details of the sender.",
+                      "required": [
+                        "name",
+                        "phone",
+                        "countryCode",
+                        "city"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "The name of the person or company sending the shipment.",
+                          "example": "John Doe",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "The email address of the person or company sending the shipment.",
+                          "example": "john.doe@example.com",
+                          "minLength": 0,
+                          "maxLength": 255,
+                          "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "description": "The phone number of the person or company sending the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+                          "example": "+11234567890",
+                          "minLength": 1,
+                          "maxLength": 50,
+                          "pattern": "^\\+?[1-9]\\d{1,14}$"
+                        },
+                        "secondPhone": {
+                          "type": "string",
+                          "description": "An additional phone number of the person or company sending the shipment.",
+                          "example": "+10987654321",
+                          "minLength": 0,
+                          "maxLength": 50,
+                          "pattern": "^\\+?[1-9]\\d{1,14}$"
+                        },
+                        "countryCode": {
+                          "type": "string",
+                          "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+                          "example": "US",
+                          "minLength": 2,
+                          "maxLength": 2
+                        },
+                        "state": {
+                          "type": "string",
+                          "description": "The state or region of the address.",
+                          "example": "California",
+                          "minLength": 0,
+                          "maxLength": 100
+                        },
+                        "postCode": {
+                          "type": "string",
+                          "description": "The postal code or ZIP code of the address.",
+                          "example": "90210",
+                          "minLength": 0,
+                          "maxLength": 20
+                        },
+                        "city": {
+                          "type": "string",
+                          "description": "The city name of the address.",
+                          "example": "Beverly Hills",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "line1": {
+                          "type": "string",
+                          "description": "The first line of the address, typically including street name and number.",
+                          "example": "1234 Elm Street",
+                          "minLength": 0,
+                          "maxLength": 500
+                        },
+                        "line2": {
+                          "type": "string",
+                          "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+                          "example": "Apt 101",
+                          "minLength": 0,
+                          "maxLength": 500
+                        },
+                        "line3": {
+                          "type": "string",
+                          "description": "The third line of the address, often used for further details if needed.",
+                          "example": "Building A, Floor 2",
+                          "minLength": 0,
+                          "maxLength": 500
+                        }
+                      },
+                      "example": {
+                        "name": "Jane Smith",
+                        "email": "jane.smith@example.com",
+                        "phone": "+11234567890",
+                        "secondPhone": "+10987654321",
+                        "countryCode": "US",
+                        "state": "Texas",
+                        "postCode": "73301",
+                        "city": "Austin",
+                        "line1": "5678 Oak Avenue",
+                        "line2": "Suite 202",
+                        "line3": "Warehouse B"
+                      },
+                      "x-readme-ref-name": "SenderDto"
+                    },
+                    "receiver": {
+                      "type": "object",
+                      "description": "Represents the contact and address details of the receiver.",
+                      "required": [
+                        "name",
+                        "phone",
+                        "countryCode",
+                        "city"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "The name of the person or company receiving the shipment.",
+                          "example": "John Doe",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "The email address of the person or company receiving the shipment.",
+                          "example": "john.doe@example.com",
+                          "minLength": 0,
+                          "maxLength": 255,
+                          "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "description": "The phone number of the person or company receiving the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+                          "example": "+11234567890",
+                          "minLength": 1,
+                          "maxLength": 50,
+                          "pattern": "^\\+?[1-9]\\d{1,14}$"
+                        },
+                        "secondPhone": {
+                          "type": "string",
+                          "description": "An additional phone number of the person or company receiving the shipment.",
+                          "example": "+10987654321",
+                          "minLength": 0,
+                          "maxLength": 50,
+                          "pattern": "^\\+?[1-9]\\d{1,14}$"
+                        },
+                        "countryCode": {
+                          "type": "string",
+                          "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+                          "example": "US",
+                          "minLength": 2,
+                          "maxLength": 2
+                        },
+                        "state": {
+                          "type": "string",
+                          "description": "The state or region of the address.",
+                          "example": "California",
+                          "minLength": 0,
+                          "maxLength": 100
+                        },
+                        "postCode": {
+                          "type": "string",
+                          "description": "The postal code or Zip Code of the address.",
+                          "example": "90210",
+                          "minLength": 0,
+                          "maxLength": 20
+                        },
+                        "city": {
+                          "type": "string",
+                          "description": "The city name of the address.",
+                          "example": "Beverly Hills",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "line1": {
+                          "type": "string",
+                          "description": "The first line of the address, typically including street name and number.",
+                          "example": "1234 Elm Street",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "line2": {
+                          "type": "string",
+                          "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+                          "example": "Apt 101",
+                          "minLength": 0,
+                          "maxLength": 500
+                        },
+                        "line3": {
+                          "type": "string",
+                          "description": "The third line of the address, often used for further details if needed.",
+                          "example": "Building A, Floor 2",
+                          "minLength": 0,
+                          "maxLength": 500
+                        }
+                      },
+                      "example": {
+                        "name": "John Doe",
+                        "email": "john.doe@example.com",
+                        "phone": "+11234567890",
+                        "secondPhone": "+10987654321",
+                        "countryCode": "US",
+                        "state": "California",
+                        "postCode": "90210",
+                        "city": "Beverly Hills",
+                        "line1": "1234 Elm Street",
+                        "line2": "Apt 101",
+                        "line3": "Building A, Floor 2"
+                      },
+                      "x-readme-ref-name": "ReceiverDto"
+                    },
+                    "details": {
+                      "type": "object",
+                      "description": "Represents the detailed information about a shipment.",
+                      "required": [
+                        "weight",
+                        "declaredWeight",
+                        "numberOfPieces",
+                        "pickupDate",
+                        "shippingType",
+                        "productCategory",
+                        "productType",
+                        "descriptionOfGoods"
+                      ],
+                      "properties": {
+                        "weight": {
+                          "description": "The weight provided by the customer or the volumetric or gross weight, whichever is higher.",
+                          "type": "object",
+                          "required": [
+                            "unit",
+                            "value"
+                          ],
+                          "properties": {
+                            "unit": {
+                              "type": "string",
+                              "description": "The unit of measurement used for the weight of the Shipment.",
+                              "example": "KG",
+                              "minLength": 2,
+                              "maxLength": 2,
+                              "enum": [
+                                "KG",
+                                "LB"
+                              ]
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "The weight value.",
+                              "example": 10,
+                              "minimum": 0,
+                              "exclusiveMinimum": true,
+                              "maximum": 999999,
+                              "exclusiveMaximum": true
+                            }
+                          },
+                          "example": {
+                            "unit": "KG",
+                            "value": 10
+                          },
+                          "x-readme-ref-name": "WeightDto"
+                        },
+                        "declaredWeight": {
+                          "description": "The weight used for billing purposes to charge your customer.",
+                          "type": "object",
+                          "required": [
+                            "unit",
+                            "value"
+                          ],
+                          "properties": {
+                            "unit": {
+                              "type": "string",
+                              "description": "The unit of measurement used for the weight of the Shipment.",
+                              "example": "KG",
+                              "minLength": 2,
+                              "maxLength": 2,
+                              "enum": [
+                                "KG",
+                                "LB"
+                              ]
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "The weight value.",
+                              "example": 10,
+                              "minimum": 0,
+                              "exclusiveMinimum": true,
+                              "maximum": 999999,
+                              "exclusiveMaximum": true
+                            }
+                          },
+                          "example": {
+                            "unit": "KG",
+                            "value": 10
+                          },
+                          "x-readme-ref-name": "WeightDto"
+                        },
+                        "cod": {
+                          "type": "object",
+                          "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                          "required": [
+                            "currencyCode",
+                            "amount"
+                          ],
+                          "properties": {
+                            "currencyCode": {
+                              "type": "string",
+                              "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                              "minLength": 3,
+                              "maxLength": 3,
+                              "example": "USD"
+                            },
+                            "amount": {
+                              "type": "number",
+                              "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                              "minimum": 0.01,
+                              "example": 100
+                            }
+                          },
+                          "example": {
+                            "currencyCode": "USD",
+                            "amount": 100
+                          },
+                          "x-readme-ref-name": "MoneyDto"
+                        },
+                        "customs": {
+                          "type": "object",
+                          "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                          "required": [
+                            "currencyCode",
+                            "amount"
+                          ],
+                          "properties": {
+                            "currencyCode": {
+                              "type": "string",
+                              "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                              "minLength": 3,
+                              "maxLength": 3,
+                              "example": "USD"
+                            },
+                            "amount": {
+                              "type": "number",
+                              "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                              "minimum": 0.01,
+                              "example": 100
+                            }
+                          },
+                          "example": {
+                            "currencyCode": "USD",
+                            "amount": 100
+                          },
+                          "x-readme-ref-name": "MoneyDto"
+                        },
+                        "deliveryCharges": {
+                          "type": "object",
+                          "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                          "required": [
+                            "currencyCode",
+                            "amount"
+                          ],
+                          "properties": {
+                            "currencyCode": {
+                              "type": "string",
+                              "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                              "minLength": 3,
+                              "maxLength": 3,
+                              "example": "USD"
+                            },
+                            "amount": {
+                              "type": "number",
+                              "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                              "minimum": 0.01,
+                              "example": 100
+                            }
+                          },
+                          "example": {
+                            "currencyCode": "USD",
+                            "amount": 100
+                          },
+                          "x-readme-ref-name": "MoneyDto"
+                        },
+                        "numberOfPieces": {
+                          "type": "integer",
+                          "description": "The total count of individual items or packages in the shipment.",
+                          "example": 3,
+                          "minimum": 1
+                        },
+                        "pickupDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "The date on which the shipment was collected.",
+                          "example": "2024-09-01T10:15:30Z"
+                        },
+                        "deliveryStatus": {
+                          "type": "string",
+                          "description": "The current status of the shipment.",
+                          "example": "In Transit"
+                        },
+                        "deliveryDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "The date on which the shipment was actually delivered.",
+                          "example": "2024-09-05T15:30:00Z"
+                        },
+                        "deliveryAttempts": {
+                          "type": "integer",
+                          "description": "The number of delivery attempts.",
+                          "example": 1
+                        },
+                        "shippingType": {
+                          "type": "string",
+                          "description": "Specifies whether the shipment is Domestic or International.",
+                          "example": "INT",
+                          "minLength": 3,
+                          "maxLength": 3,
+                          "enum": [
+                            "INT",
+                            "DOM"
+                          ]
+                        },
+                        "productCategory": {
+                          "type": "string",
+                          "description": "Defines the shipment category, such as Documents and Non-Documents.",
+                          "example": "Documents",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "productType": {
+                          "type": "string",
+                          "description": "Represents the service level of the shipment, such as Non-Priority, Standard, Priority, Premium, Same Day, Next Day, etc.",
+                          "example": "Same Day",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "descriptionOfGoods": {
+                          "type": "string",
+                          "description": "Provides a detailed description of the items in the shipment.",
+                          "example": "Smartphones",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "hsCodeDescription": {
+                          "type": "string",
+                          "description": "Describes the goods based on the Harmonized System (HS) code, used for international trade classification.",
+                          "minLength": 50,
+                          "maxLength": 200
+                        },
+                        "dimensions": {
+                          "type": "object",
+                          "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+                          "required": [
+                            "length",
+                            "width",
+                            "height",
+                            "unit"
+                          ],
+                          "properties": {
+                            "length": {
+                              "type": "number",
+                              "format": "double",
+                              "description": "Length must be greater than 0 and less than 99999.",
+                              "example": 150.5,
+                              "minimum": 0.01,
+                              "exclusiveMinimum": true,
+                              "maximum": 99999
+                            },
+                            "width": {
+                              "type": "number",
+                              "format": "double",
+                              "description": "Width must be greater than 0 and less than 99999.",
+                              "example": 75.2,
+                              "minimum": 0.01,
+                              "exclusiveMinimum": true,
+                              "maximum": 99999
+                            },
+                            "height": {
+                              "type": "number",
+                              "format": "double",
+                              "description": "Height must be greater than 0 and less than 99999.",
+                              "example": 55.3,
+                              "minimum": 0.01,
+                              "exclusiveMinimum": true,
+                              "maximum": 99999
+                            },
+                            "unit": {
+                              "type": "string",
+                              "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                              "minLength": 2,
+                              "maxLength": 2,
+                              "enum": [
+                                "CM",
+                                "IN"
+                              ],
+                              "example": "CM"
+                            }
+                          },
+                          "example": {
+                            "length": 150.5,
+                            "width": 75.2,
+                            "height": 55.3,
+                            "unit": "CM"
+                          },
+                          "x-readme-ref-name": "DimensionsDto"
+                        }
+                      },
+                      "example": {
+                        "weight": {
+                          "unit": "KG",
+                          "value": 10
+                        },
+                        "declaredWeight": {
+                          "unit": "KG",
+                          "value": 10
+                        },
+                        "cod": {
+                          "currencyCode": "USD",
+                          "amount": 0
+                        },
+                        "customs": {
+                          "currencyCode": "USD",
+                          "amount": 10
+                        },
+                        "deliveryCharges": {
+                          "currencyCode": "USD",
+                          "amount": 0
+                        },
+                        "numberOfPieces": 3,
+                        "pickupDate": "2024-09-01T10:15:30Z",
+                        "deliveryStatus": "In Transit",
+                        "deliveryDate": "2024-09-05T15:30:00Z",
+                        "deliveryAttempts": 1,
+                        "shippingType": "INT",
+                        "productCategory": "Documents",
+                        "productType": "Same Day",
+                        "descriptionOfGoods": "Smartphones",
+                        "hsCodeDescription": "Mobile phones classified under HS code 851712",
+                        "dimensions": {
+                          "length": 150.5,
+                          "width": 75.2,
+                          "height": 55.3,
+                          "unit": "CM"
+                        }
+                      },
+                      "x-readme-ref-name": "ShipmentDetailsDto"
+                    },
+                    "items": {
+                      "type": "array",
+                      "description": "The details of the items contained in the shipment.",
+                      "items": {
+                        "type": "object",
+                        "description": "Represents the details of an individual item within a shipment.",
+                        "properties": {
+                          "description": {
+                            "type": "string",
+                            "description": "A brief summary of the item's features or nature.",
+                            "example": "iPhone 14",
+                            "maxLength": 200
+                          },
+                          "countryOfOrigin": {
+                            "type": "string",
+                            "description": "The country where the item was manufactured.",
+                            "example": "CN",
+                            "maxLength": 2
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "description": "The number of units of a specific item.",
+                            "example": 2
+                          },
+                          "hsCode": {
+                            "type": "string",
+                            "description": "The Harmonized System code used for classifying goods in international trade.",
+                            "example": "851712",
+                            "maxLength": 100
+                          },
+                          "customsValue": {
+                            "type": "object",
+                            "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                            "required": [
+                              "currencyCode",
+                              "amount"
+                            ],
+                            "properties": {
+                              "currencyCode": {
+                                "type": "string",
+                                "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                                "minLength": 3,
+                                "maxLength": 3,
+                                "example": "USD"
+                              },
+                              "amount": {
+                                "type": "number",
+                                "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                                "minimum": 0.01,
+                                "example": 100
+                              }
+                            },
+                            "example": {
+                              "currencyCode": "USD",
+                              "amount": 100
+                            },
+                            "x-readme-ref-name": "MoneyDto"
+                          },
+                          "weight": {
+                            "type": "object",
+                            "description": "The weight of the Shipment.",
+                            "required": [
+                              "unit",
+                              "value"
+                            ],
+                            "properties": {
+                              "unit": {
+                                "type": "string",
+                                "description": "The unit of measurement used for the weight of the Shipment.",
+                                "example": "KG",
+                                "minLength": 2,
+                                "maxLength": 2,
+                                "enum": [
+                                  "KG",
+                                  "LB"
+                                ]
+                              },
+                              "value": {
+                                "type": "number",
+                                "description": "The weight value.",
+                                "example": 10,
+                                "minimum": 0,
+                                "exclusiveMinimum": true,
+                                "maximum": 999999,
+                                "exclusiveMaximum": true
+                              }
+                            },
+                            "example": {
+                              "unit": "KG",
+                              "value": 10
+                            },
+                            "x-readme-ref-name": "WeightDto"
+                          },
+                          "dimensions": {
+                            "type": "object",
+                            "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+                            "required": [
+                              "length",
+                              "width",
+                              "height",
+                              "unit"
+                            ],
+                            "properties": {
+                              "length": {
+                                "type": "number",
+                                "format": "double",
+                                "description": "Length must be greater than 0 and less than 99999.",
+                                "example": 150.5,
+                                "minimum": 0.01,
+                                "exclusiveMinimum": true,
+                                "maximum": 99999
+                              },
+                              "width": {
+                                "type": "number",
+                                "format": "double",
+                                "description": "Width must be greater than 0 and less than 99999.",
+                                "example": 75.2,
+                                "minimum": 0.01,
+                                "exclusiveMinimum": true,
+                                "maximum": 99999
+                              },
+                              "height": {
+                                "type": "number",
+                                "format": "double",
+                                "description": "Height must be greater than 0 and less than 99999.",
+                                "example": 55.3,
+                                "minimum": 0.01,
+                                "exclusiveMinimum": true,
+                                "maximum": 99999
+                              },
+                              "unit": {
+                                "type": "string",
+                                "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                                "minLength": 2,
+                                "maxLength": 2,
+                                "enum": [
+                                  "CM",
+                                  "IN"
+                                ],
+                                "example": "CM"
+                              }
+                            },
+                            "example": {
+                              "length": 150.5,
+                              "width": 75.2,
+                              "height": 55.3,
+                              "unit": "CM"
+                            },
+                            "x-readme-ref-name": "DimensionsDto"
+                          }
+                        },
+                        "example": {
+                          "description": "iPhone 14",
+                          "countryOfOrigin": "CN",
+                          "quantity": 2,
+                          "hsCode": "851712",
+                          "customsValue": {
+                            "currencyCode": "USD",
+                            "amount": 500
+                          },
+                          "weight": {
+                            "unit": "KG",
+                            "value": 1.5
+                          },
+                          "dimensions": {
+                            "length": 30,
+                            "width": 20,
+                            "height": 10,
+                            "unit": "CM"
+                          }
+                        },
+                        "x-readme-ref-name": "ShipmentItemDto"
+                      }
+                    }
+                  },
+                  "example": {
+                    "trackingNumber": "TRACK1234567890",
+                    "sender": {
+                      "name": "Jane Smith",
+                      "phone": "+11234567890",
+                      "countryCode": "US",
+                      "city": "Austin"
+                    },
+                    "receiver": {
+                      "name": "John Doe",
+                      "phone": "+11234567890",
+                      "countryCode": "US",
+                      "city": "Beverly Hills"
+                    },
+                    "details": {
+                      "weight": {
+                        "unit": "KG",
+                        "value": 10
+                      },
+                      "declaredWeight": {
+                        "unit": "KG",
+                        "value": 10
+                      },
+                      "numberOfPieces": 3,
+                      "pickupDate": "2024-09-01T10:15:30Z",
+                      "shippingType": "INT",
+                      "productCategory": "Documents",
+                      "productType": "Same Day",
+                      "descriptionOfGoods": "Smartphones"
+                    },
+                    "items": [
+                      {
+                        "description": "iPhone 14",
+                        "countryOfOrigin": "CN",
+                        "quantity": 2
+                      }
+                    ]
+                  },
+                  "x-readme-ref-name": "ShipmentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid shipment details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication."
+          },
+          "422": {
+            "description": "Unprocessable Entity - Shipment data validation failed."
+          },
+          "500": {
+            "description": "Internal Server Error - Something went wrong on the server."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/shipment/issueInvoice": {
+      "post": {
+        "summary": "Creates an invoice for an existing shipment with the provided details.",
+        "operationId": "createShipmentInvoice",
+        "tags": [
+          "Invoice"
+        ],
+        "requestBody": {
+          "description": "The shipment invoice details to create.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Represents the invoice details for a shipment, including tracking number, chargeable weight, and charges.",
+                "required": [
+                  "trackingNumber",
+                  "chargeableWeight",
+                  "charges",
+                  "invoice"
+                ],
+                "properties": {
+                  "trackingNumber": {
+                    "type": "string",
+                    "description": "The unique tracking number associated with the shipment.",
+                    "example": "TRACK1234567890",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "chargeableWeight": {
+                    "type": "object",
+                    "description": "The weight of the Shipment.",
+                    "required": [
+                      "unit",
+                      "value"
+                    ],
+                    "properties": {
+                      "unit": {
+                        "type": "string",
+                        "description": "The unit of measurement used for the weight of the Shipment.",
+                        "example": "KG",
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "enum": [
+                          "KG",
+                          "LB"
+                        ]
+                      },
+                      "value": {
+                        "type": "number",
+                        "description": "The weight value.",
+                        "example": 10,
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "maximum": 999999,
+                        "exclusiveMaximum": true
+                      }
+                    },
+                    "example": {
+                      "unit": "KG",
+                      "value": 10
+                    },
+                    "x-readme-ref-name": "WeightDto"
+                  },
+                  "charges": {
+                    "type": "array",
+                    "description": "The list of charges associated with the shipment.",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "description": "Represents a charge associated with a shipment or transaction.",
+                      "required": [
+                        "type",
+                        "amount"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "description": "The type of the charge. All applicable costs associated with the Shipment. Possible values are; Base Rate, fuel Surcharge, insurance, War risk, handling and packing fees, and other charges. It can not exceed 100 characters",
+                          "example": "Base Rate",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "amount": {
+                          "type": "object",
+                          "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                          "required": [
+                            "currencyCode",
+                            "amount"
+                          ],
+                          "properties": {
+                            "currencyCode": {
+                              "type": "string",
+                              "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                              "minLength": 3,
+                              "maxLength": 3,
+                              "example": "USD"
+                            },
+                            "amount": {
+                              "type": "number",
+                              "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                              "minimum": 0.01,
+                              "example": 100
+                            }
+                          },
+                          "example": {
+                            "currencyCode": "USD",
+                            "amount": 100
+                          },
+                          "x-readme-ref-name": "MoneyDto"
+                        }
+                      },
+                      "example": {
+                        "type": "Base Rate",
+                        "amount": {
+                          "currencyCode": "USD",
+                          "amount": 150
+                        }
+                      },
+                      "x-readme-ref-name": "ChargeDto"
+                    }
+                  },
+                  "invoice": {
+                    "type": "object",
+                    "description": "Represents the details of an invoice.",
+                    "required": [
+                      "invoiceNumber",
+                      "invoiceDate",
+                      "billingAccountNumber",
+                      "billingAccountName",
+                      "taxAmount",
+                      "totalAmountIncludingTax",
+                      "currencyCode"
+                    ],
+                    "properties": {
+                      "invoiceNumber": {
+                        "type": "string",
+                        "description": "The invoice number of the shipment. Must not exceed 100 characters.",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "example": "INV-123456"
+                      },
+                      "invoiceDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time of the invoice.",
+                        "example": "2024-09-01T10:15:30Z"
+                      },
+                      "billingAccountNumber": {
+                        "type": "string",
+                        "description": "The billing account number associated with the invoice. Must not exceed 100 characters.",
+                        "minLength": 1,
+                        "maxLength": 100,
+                        "example": "ACC-654321"
+                      },
+                      "billingAccountName": {
+                        "type": "string",
+                        "description": "The billing account name associated with the invoice. Must not exceed 500 characters.",
+                        "minLength": 1,
+                        "maxLength": 500,
+                        "example": "ABC Corporation"
+                      },
+                      "totalDiscountAmount": {
+                        "type": "number",
+                        "description": "The total discount amount applied to the invoice. Must be 0 or more.",
+                        "minimum": 0,
+                        "example": 50
+                      },
+                      "taxAmount": {
+                        "type": "number",
+                        "description": "The tax amount applied to the invoice. Must be 0 or more.",
+                        "minimum": 0.01,
+                        "example": 50
+                      },
+                      "totalAmountIncludingTax": {
+                        "type": "number",
+                        "description": "The total amount including tax for the invoice. Must be 0 or more and greater than the TaxAmount.",
+                        "minimum": 0.01,
+                        "example": 550
+                      },
+                      "currencyCode": {
+                        "type": "string",
+                        "description": "The three-letter ISO currency code. Must be exactly 3 characters and valid.",
+                        "minLength": 3,
+                        "maxLength": 3,
+                        "example": "USD"
+                      }
+                    },
+                    "example": {
+                      "invoiceNumber": "INV-123456",
+                      "invoiceDate": "2024-09-01T10:15:30Z",
+                      "billingAccountNumber": "ACC-654321",
+                      "billingAccountName": "ABC Corporation",
+                      "totalDiscountAmount": 20,
+                      "taxAmount": 50,
+                      "totalAmountIncludingTax": 550,
+                      "currencyCode": "USD"
+                    },
+                    "x-readme-ref-name": "InvoiceDto"
+                  }
+                },
+                "example": {
+                  "trackingNumber": "TRACK1234567890",
+                  "chargeableWeight": {
+                    "unit": "KG",
+                    "value": 10
+                  },
+                  "charges": [
+                    {
+                      "type": "Base Rate",
+                      "amount": {
+                        "currencyCode": "USD",
+                        "amount": 150
+                      }
+                    }
+                  ],
+                  "invoice": {
+                    "invoiceNumber": "INV-123456",
+                    "invoiceDate": "2024-09-01T10:15:30Z",
+                    "billingAccountNumber": "ACC-654321",
+                    "billingAccountName": "Acme Corporation",
+                    "totalDiscountAmount": 20,
+                    "taxAmount": 50,
+                    "totalAmountIncludingTax": 550,
+                    "currencyCode": "USD"
+                  }
+                },
+                "x-readme-ref-name": "ShipmentInvoiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shipment invoice created successfully.",
+            "headers": {
+              "Location": {
+                "description": "The URI of the created shipment invoice.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Represents the invoice details for a shipment, including tracking number, chargeable weight, and charges.",
+                  "required": [
+                    "trackingNumber",
+                    "chargeableWeight",
+                    "charges",
+                    "invoice"
+                  ],
+                  "properties": {
+                    "trackingNumber": {
+                      "type": "string",
+                      "description": "The unique tracking number associated with the shipment.",
+                      "example": "TRACK1234567890",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "chargeableWeight": {
+                      "type": "object",
+                      "description": "The weight of the Shipment.",
+                      "required": [
+                        "unit",
+                        "value"
+                      ],
+                      "properties": {
+                        "unit": {
+                          "type": "string",
+                          "description": "The unit of measurement used for the weight of the Shipment.",
+                          "example": "KG",
+                          "minLength": 2,
+                          "maxLength": 2,
+                          "enum": [
+                            "KG",
+                            "LB"
+                          ]
+                        },
+                        "value": {
+                          "type": "number",
+                          "description": "The weight value.",
+                          "example": 10,
+                          "minimum": 0,
+                          "exclusiveMinimum": true,
+                          "maximum": 999999,
+                          "exclusiveMaximum": true
+                        }
+                      },
+                      "example": {
+                        "unit": "KG",
+                        "value": 10
+                      },
+                      "x-readme-ref-name": "WeightDto"
+                    },
+                    "charges": {
+                      "type": "array",
+                      "description": "The list of charges associated with the shipment.",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "description": "Represents a charge associated with a shipment or transaction.",
+                        "required": [
+                          "type",
+                          "amount"
+                        ],
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The type of the charge. All applicable costs associated with the Shipment. Possible values are; Base Rate, fuel Surcharge, insurance, War risk, handling and packing fees, and other charges. It can not exceed 100 characters",
+                            "example": "Base Rate",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "amount": {
+                            "type": "object",
+                            "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                            "required": [
+                              "currencyCode",
+                              "amount"
+                            ],
+                            "properties": {
+                              "currencyCode": {
+                                "type": "string",
+                                "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                                "minLength": 3,
+                                "maxLength": 3,
+                                "example": "USD"
+                              },
+                              "amount": {
+                                "type": "number",
+                                "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                                "minimum": 0.01,
+                                "example": 100
+                              }
+                            },
+                            "example": {
+                              "currencyCode": "USD",
+                              "amount": 100
+                            },
+                            "x-readme-ref-name": "MoneyDto"
+                          }
+                        },
+                        "example": {
+                          "type": "Base Rate",
+                          "amount": {
+                            "currencyCode": "USD",
+                            "amount": 150
+                          }
+                        },
+                        "x-readme-ref-name": "ChargeDto"
+                      }
+                    },
+                    "invoice": {
+                      "type": "object",
+                      "description": "Represents the details of an invoice.",
+                      "required": [
+                        "invoiceNumber",
+                        "invoiceDate",
+                        "billingAccountNumber",
+                        "billingAccountName",
+                        "taxAmount",
+                        "totalAmountIncludingTax",
+                        "currencyCode"
+                      ],
+                      "properties": {
+                        "invoiceNumber": {
+                          "type": "string",
+                          "description": "The invoice number of the shipment. Must not exceed 100 characters.",
+                          "minLength": 1,
+                          "maxLength": 100,
+                          "example": "INV-123456"
+                        },
+                        "invoiceDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "The date and time of the invoice.",
+                          "example": "2024-09-01T10:15:30Z"
+                        },
+                        "billingAccountNumber": {
+                          "type": "string",
+                          "description": "The billing account number associated with the invoice. Must not exceed 100 characters.",
+                          "minLength": 1,
+                          "maxLength": 100,
+                          "example": "ACC-654321"
+                        },
+                        "billingAccountName": {
+                          "type": "string",
+                          "description": "The billing account name associated with the invoice. Must not exceed 500 characters.",
+                          "minLength": 1,
+                          "maxLength": 500,
+                          "example": "ABC Corporation"
+                        },
+                        "totalDiscountAmount": {
+                          "type": "number",
+                          "description": "The total discount amount applied to the invoice. Must be 0 or more.",
+                          "minimum": 0,
+                          "example": 50
+                        },
+                        "taxAmount": {
+                          "type": "number",
+                          "description": "The tax amount applied to the invoice. Must be 0 or more.",
+                          "minimum": 0.01,
+                          "example": 50
+                        },
+                        "totalAmountIncludingTax": {
+                          "type": "number",
+                          "description": "The total amount including tax for the invoice. Must be 0 or more and greater than the TaxAmount.",
+                          "minimum": 0.01,
+                          "example": 550
+                        },
+                        "currencyCode": {
+                          "type": "string",
+                          "description": "The three-letter ISO currency code. Must be exactly 3 characters and valid.",
+                          "minLength": 3,
+                          "maxLength": 3,
+                          "example": "USD"
+                        }
+                      },
+                      "example": {
+                        "invoiceNumber": "INV-123456",
+                        "invoiceDate": "2024-09-01T10:15:30Z",
+                        "billingAccountNumber": "ACC-654321",
+                        "billingAccountName": "ABC Corporation",
+                        "totalDiscountAmount": 20,
+                        "taxAmount": 50,
+                        "totalAmountIncludingTax": 550,
+                        "currencyCode": "USD"
+                      },
+                      "x-readme-ref-name": "InvoiceDto"
+                    }
+                  },
+                  "example": {
+                    "trackingNumber": "TRACK1234567890",
+                    "chargeableWeight": {
+                      "unit": "KG",
+                      "value": 10
+                    },
+                    "charges": [
+                      {
+                        "type": "Base Rate",
+                        "amount": {
+                          "currencyCode": "USD",
+                          "amount": 150
+                        }
+                      }
+                    ],
+                    "invoice": {
+                      "invoiceNumber": "INV-123456",
+                      "invoiceDate": "2024-09-01T10:15:30Z",
+                      "billingAccountNumber": "ACC-654321",
+                      "billingAccountName": "Acme Corporation",
+                      "totalDiscountAmount": 20,
+                      "taxAmount": 50,
+                      "totalAmountIncludingTax": 550,
+                      "currencyCode": "USD"
+                    }
+                  },
+                  "x-readme-ref-name": "ShipmentInvoiceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid shipment invoice details or validation errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Shipment invoice details cannot be null."
+                    },
+                    "errors": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "example": {
+                        "trackingNumber": [
+                          "Tracking number is required."
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication."
+          },
+          "422": {
+            "description": "Unprocessable Entity - Shipment invoice data validation failed."
+          },
+          "500": {
+            "description": "Internal Server Error - Something went wrong on the server."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "AuthenticateRequestDto": {
+        "type": "object",
+        "description": "Represents the request used for authentication.",
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "description": "The client ID.",
+            "example": "my-client-id"
+          },
+          "clientSecret": {
+            "type": "string",
+            "description": "The client secret.",
+            "example": "my-client-secret"
+          }
+        },
+        "required": [
+          "clientId",
+          "clientSecret"
+        ],
+        "x-readme-ref-name": "AuthenticateRequestDto"
+      },
+      "AuthenticateResponseDto": {
+        "type": "object",
+        "description": "Represents the response returned after successful authentication.",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "The JWT token.",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "tokenType": {
+            "type": "string",
+            "description": "The type of the token, typically \"bearer\".",
+            "example": "bearer"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "The number of seconds until the token expires.",
+            "example": 3600
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn"
+        ],
+        "x-readme-ref-name": "AuthenticateResponseDto"
+      },
+      "ChargeDto": {
+        "type": "object",
+        "description": "Represents a charge associated with a shipment or transaction.",
+        "required": [
+          "type",
+          "amount"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the charge. All applicable costs associated with the Shipment. Possible values are; Base Rate, fuel Surcharge, insurance, War risk, handling and packing fees, and other charges. It can not exceed 100 characters",
+            "example": "Base Rate",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "amount": {
+            "type": "object",
+            "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+            "required": [
+              "currencyCode",
+              "amount"
+            ],
+            "properties": {
+              "currencyCode": {
+                "type": "string",
+                "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                "minLength": 3,
+                "maxLength": 3,
+                "example": "USD"
+              },
+              "amount": {
+                "type": "number",
+                "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                "minimum": 0.01,
+                "example": 100
+              }
+            },
+            "example": {
+              "currencyCode": "USD",
+              "amount": 100
+            },
+            "x-readme-ref-name": "MoneyDto"
+          }
+        },
+        "example": {
+          "type": "Base Rate",
+          "amount": {
+            "currencyCode": "USD",
+            "amount": 150
+          }
+        },
+        "x-readme-ref-name": "ChargeDto"
+      },
+      "DimensionsDto": {
+        "type": "object",
+        "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+        "required": [
+          "length",
+          "width",
+          "height",
+          "unit"
+        ],
+        "properties": {
+          "length": {
+            "type": "number",
+            "format": "double",
+            "description": "Length must be greater than 0 and less than 99999.",
+            "example": 150.5,
+            "minimum": 0.01,
+            "exclusiveMinimum": true,
+            "maximum": 99999
+          },
+          "width": {
+            "type": "number",
+            "format": "double",
+            "description": "Width must be greater than 0 and less than 99999.",
+            "example": 75.2,
+            "minimum": 0.01,
+            "exclusiveMinimum": true,
+            "maximum": 99999
+          },
+          "height": {
+            "type": "number",
+            "format": "double",
+            "description": "Height must be greater than 0 and less than 99999.",
+            "example": 55.3,
+            "minimum": 0.01,
+            "exclusiveMinimum": true,
+            "maximum": 99999
+          },
+          "unit": {
+            "type": "string",
+            "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+            "minLength": 2,
+            "maxLength": 2,
+            "enum": [
+              "CM",
+              "IN"
+            ],
+            "example": "CM"
+          }
+        },
+        "example": {
+          "length": 150.5,
+          "width": 75.2,
+          "height": 55.3,
+          "unit": "CM"
+        },
+        "x-readme-ref-name": "DimensionsDto"
+      },
+      "InvoiceDto": {
+        "type": "object",
+        "description": "Represents the details of an invoice.",
+        "required": [
+          "invoiceNumber",
+          "invoiceDate",
+          "billingAccountNumber",
+          "billingAccountName",
+          "taxAmount",
+          "totalAmountIncludingTax",
+          "currencyCode"
+        ],
+        "properties": {
+          "invoiceNumber": {
+            "type": "string",
+            "description": "The invoice number of the shipment. Must not exceed 100 characters.",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "INV-123456"
+          },
+          "invoiceDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time of the invoice.",
+            "example": "2024-09-01T10:15:30Z"
+          },
+          "billingAccountNumber": {
+            "type": "string",
+            "description": "The billing account number associated with the invoice. Must not exceed 100 characters.",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "ACC-654321"
+          },
+          "billingAccountName": {
+            "type": "string",
+            "description": "The billing account name associated with the invoice. Must not exceed 500 characters.",
+            "minLength": 1,
+            "maxLength": 500,
+            "example": "ABC Corporation"
+          },
+          "totalDiscountAmount": {
+            "type": "number",
+            "description": "The total discount amount applied to the invoice. Must be 0 or more.",
+            "minimum": 0,
+            "example": 50
+          },
+          "taxAmount": {
+            "type": "number",
+            "description": "The tax amount applied to the invoice. Must be 0 or more.",
+            "minimum": 0.01,
+            "example": 50
+          },
+          "totalAmountIncludingTax": {
+            "type": "number",
+            "description": "The total amount including tax for the invoice. Must be 0 or more and greater than the TaxAmount.",
+            "minimum": 0.01,
+            "example": 550
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "The three-letter ISO currency code. Must be exactly 3 characters and valid.",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD"
+          }
+        },
+        "example": {
+          "invoiceNumber": "INV-123456",
+          "invoiceDate": "2024-09-01T10:15:30Z",
+          "billingAccountNumber": "ACC-654321",
+          "billingAccountName": "ABC Corporation",
+          "totalDiscountAmount": 20,
+          "taxAmount": 50,
+          "totalAmountIncludingTax": 550,
+          "currencyCode": "USD"
+        },
+        "x-readme-ref-name": "InvoiceDto"
+      },
+      "MoneyDto": {
+        "type": "object",
+        "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+        "required": [
+          "currencyCode",
+          "amount"
+        ],
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+            "minimum": 0.01,
+            "example": 100
+          }
+        },
+        "example": {
+          "currencyCode": "USD",
+          "amount": 100
+        },
+        "x-readme-ref-name": "MoneyDto"
+      },
+      "SenderDto": {
+        "type": "object",
+        "description": "Represents the contact and address details of the sender.",
+        "required": [
+          "name",
+          "phone",
+          "countryCode",
+          "city"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the person or company sending the shipment.",
+            "example": "John Doe",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the person or company sending the shipment.",
+            "example": "john.doe@example.com",
+            "minLength": 0,
+            "maxLength": 255,
+            "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+          },
+          "phone": {
+            "type": "string",
+            "description": "The phone number of the person or company sending the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+            "example": "+11234567890",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "^\\+?[1-9]\\d{1,14}$"
+          },
+          "secondPhone": {
+            "type": "string",
+            "description": "An additional phone number of the person or company sending the shipment.",
+            "example": "+10987654321",
+            "minLength": 0,
+            "maxLength": 50,
+            "pattern": "^\\+?[1-9]\\d{1,14}$"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+            "example": "US",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "state": {
+            "type": "string",
+            "description": "The state or region of the address.",
+            "example": "California",
+            "minLength": 0,
+            "maxLength": 100
+          },
+          "postCode": {
+            "type": "string",
+            "description": "The postal code or ZIP code of the address.",
+            "example": "90210",
+            "minLength": 0,
+            "maxLength": 20
+          },
+          "city": {
+            "type": "string",
+            "description": "The city name of the address.",
+            "example": "Beverly Hills",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "line1": {
+            "type": "string",
+            "description": "The first line of the address, typically including street name and number.",
+            "example": "1234 Elm Street",
+            "minLength": 0,
+            "maxLength": 500
+          },
+          "line2": {
+            "type": "string",
+            "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+            "example": "Apt 101",
+            "minLength": 0,
+            "maxLength": 500
+          },
+          "line3": {
+            "type": "string",
+            "description": "The third line of the address, often used for further details if needed.",
+            "example": "Building A, Floor 2",
+            "minLength": 0,
+            "maxLength": 500
+          }
+        },
+        "example": {
+          "name": "Jane Smith",
+          "email": "jane.smith@example.com",
+          "phone": "+11234567890",
+          "secondPhone": "+10987654321",
+          "countryCode": "US",
+          "state": "Texas",
+          "postCode": "73301",
+          "city": "Austin",
+          "line1": "5678 Oak Avenue",
+          "line2": "Suite 202",
+          "line3": "Warehouse B"
+        },
+        "x-readme-ref-name": "SenderDto"
+      },
+      "ReceiverDto": {
+        "type": "object",
+        "description": "Represents the contact and address details of the receiver.",
+        "required": [
+          "name",
+          "phone",
+          "countryCode",
+          "city"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the person or company receiving the shipment.",
+            "example": "John Doe",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the person or company receiving the shipment.",
+            "example": "john.doe@example.com",
+            "minLength": 0,
+            "maxLength": 255,
+            "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+          },
+          "phone": {
+            "type": "string",
+            "description": "The phone number of the person or company receiving the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+            "example": "+11234567890",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "^\\+?[1-9]\\d{1,14}$"
+          },
+          "secondPhone": {
+            "type": "string",
+            "description": "An additional phone number of the person or company receiving the shipment.",
+            "example": "+10987654321",
+            "minLength": 0,
+            "maxLength": 50,
+            "pattern": "^\\+?[1-9]\\d{1,14}$"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+            "example": "US",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "state": {
+            "type": "string",
+            "description": "The state or region of the address.",
+            "example": "California",
+            "minLength": 0,
+            "maxLength": 100
+          },
+          "postCode": {
+            "type": "string",
+            "description": "The postal code or Zip Code of the address.",
+            "example": "90210",
+            "minLength": 0,
+            "maxLength": 20
+          },
+          "city": {
+            "type": "string",
+            "description": "The city name of the address.",
+            "example": "Beverly Hills",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "line1": {
+            "type": "string",
+            "description": "The first line of the address, typically including street name and number.",
+            "example": "1234 Elm Street",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "line2": {
+            "type": "string",
+            "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+            "example": "Apt 101",
+            "minLength": 0,
+            "maxLength": 500
+          },
+          "line3": {
+            "type": "string",
+            "description": "The third line of the address, often used for further details if needed.",
+            "example": "Building A, Floor 2",
+            "minLength": 0,
+            "maxLength": 500
+          }
+        },
+        "example": {
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "phone": "+11234567890",
+          "secondPhone": "+10987654321",
+          "countryCode": "US",
+          "state": "California",
+          "postCode": "90210",
+          "city": "Beverly Hills",
+          "line1": "1234 Elm Street",
+          "line2": "Apt 101",
+          "line3": "Building A, Floor 2"
+        },
+        "x-readme-ref-name": "ReceiverDto"
+      },
+      "ShipmentDetailsDto": {
+        "type": "object",
+        "description": "Represents the detailed information about a shipment.",
+        "required": [
+          "weight",
+          "declaredWeight",
+          "numberOfPieces",
+          "pickupDate",
+          "shippingType",
+          "productCategory",
+          "productType",
+          "descriptionOfGoods"
+        ],
+        "properties": {
+          "weight": {
+            "description": "The weight provided by the customer or the volumetric or gross weight, whichever is higher.",
+            "type": "object",
+            "required": [
+              "unit",
+              "value"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string",
+                "description": "The unit of measurement used for the weight of the Shipment.",
+                "example": "KG",
+                "minLength": 2,
+                "maxLength": 2,
+                "enum": [
+                  "KG",
+                  "LB"
+                ]
+              },
+              "value": {
+                "type": "number",
+                "description": "The weight value.",
+                "example": 10,
+                "minimum": 0,
+                "exclusiveMinimum": true,
+                "maximum": 999999,
+                "exclusiveMaximum": true
+              }
+            },
+            "example": {
+              "unit": "KG",
+              "value": 10
+            },
+            "x-readme-ref-name": "WeightDto"
+          },
+          "declaredWeight": {
+            "description": "The weight used for billing purposes to charge your customer.",
+            "type": "object",
+            "required": [
+              "unit",
+              "value"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string",
+                "description": "The unit of measurement used for the weight of the Shipment.",
+                "example": "KG",
+                "minLength": 2,
+                "maxLength": 2,
+                "enum": [
+                  "KG",
+                  "LB"
+                ]
+              },
+              "value": {
+                "type": "number",
+                "description": "The weight value.",
+                "example": 10,
+                "minimum": 0,
+                "exclusiveMinimum": true,
+                "maximum": 999999,
+                "exclusiveMaximum": true
+              }
+            },
+            "example": {
+              "unit": "KG",
+              "value": 10
+            },
+            "x-readme-ref-name": "WeightDto"
+          },
+          "cod": {
+            "type": "object",
+            "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+            "required": [
+              "currencyCode",
+              "amount"
+            ],
+            "properties": {
+              "currencyCode": {
+                "type": "string",
+                "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                "minLength": 3,
+                "maxLength": 3,
+                "example": "USD"
+              },
+              "amount": {
+                "type": "number",
+                "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                "minimum": 0.01,
+                "example": 100
+              }
+            },
+            "example": {
+              "currencyCode": "USD",
+              "amount": 100
+            },
+            "x-readme-ref-name": "MoneyDto"
+          },
+          "customs": {
+            "type": "object",
+            "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+            "required": [
+              "currencyCode",
+              "amount"
+            ],
+            "properties": {
+              "currencyCode": {
+                "type": "string",
+                "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                "minLength": 3,
+                "maxLength": 3,
+                "example": "USD"
+              },
+              "amount": {
+                "type": "number",
+                "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                "minimum": 0.01,
+                "example": 100
+              }
+            },
+            "example": {
+              "currencyCode": "USD",
+              "amount": 100
+            },
+            "x-readme-ref-name": "MoneyDto"
+          },
+          "deliveryCharges": {
+            "type": "object",
+            "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+            "required": [
+              "currencyCode",
+              "amount"
+            ],
+            "properties": {
+              "currencyCode": {
+                "type": "string",
+                "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                "minLength": 3,
+                "maxLength": 3,
+                "example": "USD"
+              },
+              "amount": {
+                "type": "number",
+                "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                "minimum": 0.01,
+                "example": 100
+              }
+            },
+            "example": {
+              "currencyCode": "USD",
+              "amount": 100
+            },
+            "x-readme-ref-name": "MoneyDto"
+          },
+          "numberOfPieces": {
+            "type": "integer",
+            "description": "The total count of individual items or packages in the shipment.",
+            "example": 3,
+            "minimum": 1
+          },
+          "pickupDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date on which the shipment was collected.",
+            "example": "2024-09-01T10:15:30Z"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "description": "The current status of the shipment.",
+            "example": "In Transit"
+          },
+          "deliveryDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date on which the shipment was actually delivered.",
+            "example": "2024-09-05T15:30:00Z"
+          },
+          "deliveryAttempts": {
+            "type": "integer",
+            "description": "The number of delivery attempts.",
+            "example": 1
+          },
+          "shippingType": {
+            "type": "string",
+            "description": "Specifies whether the shipment is Domestic or International.",
+            "example": "INT",
+            "minLength": 3,
+            "maxLength": 3,
+            "enum": [
+              "INT",
+              "DOM"
+            ]
+          },
+          "productCategory": {
+            "type": "string",
+            "description": "Defines the shipment category, such as Documents and Non-Documents.",
+            "example": "Documents",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "productType": {
+            "type": "string",
+            "description": "Represents the service level of the shipment, such as Non-Priority, Standard, Priority, Premium, Same Day, Next Day, etc.",
+            "example": "Same Day",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "descriptionOfGoods": {
+            "type": "string",
+            "description": "Provides a detailed description of the items in the shipment.",
+            "example": "Smartphones",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "hsCodeDescription": {
+            "type": "string",
+            "description": "Describes the goods based on the Harmonized System (HS) code, used for international trade classification.",
+            "minLength": 50,
+            "maxLength": 200
+          },
+          "dimensions": {
+            "type": "object",
+            "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+            "required": [
+              "length",
+              "width",
+              "height",
+              "unit"
+            ],
+            "properties": {
+              "length": {
+                "type": "number",
+                "format": "double",
+                "description": "Length must be greater than 0 and less than 99999.",
+                "example": 150.5,
+                "minimum": 0.01,
+                "exclusiveMinimum": true,
+                "maximum": 99999
+              },
+              "width": {
+                "type": "number",
+                "format": "double",
+                "description": "Width must be greater than 0 and less than 99999.",
+                "example": 75.2,
+                "minimum": 0.01,
+                "exclusiveMinimum": true,
+                "maximum": 99999
+              },
+              "height": {
+                "type": "number",
+                "format": "double",
+                "description": "Height must be greater than 0 and less than 99999.",
+                "example": 55.3,
+                "minimum": 0.01,
+                "exclusiveMinimum": true,
+                "maximum": 99999
+              },
+              "unit": {
+                "type": "string",
+                "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                "minLength": 2,
+                "maxLength": 2,
+                "enum": [
+                  "CM",
+                  "IN"
+                ],
+                "example": "CM"
+              }
+            },
+            "example": {
+              "length": 150.5,
+              "width": 75.2,
+              "height": 55.3,
+              "unit": "CM"
+            },
+            "x-readme-ref-name": "DimensionsDto"
+          }
+        },
+        "example": {
+          "weight": {
+            "unit": "KG",
+            "value": 10
+          },
+          "declaredWeight": {
+            "unit": "KG",
+            "value": 10
+          },
+          "cod": {
+            "currencyCode": "USD",
+            "amount": 0
+          },
+          "customs": {
+            "currencyCode": "USD",
+            "amount": 10
+          },
+          "deliveryCharges": {
+            "currencyCode": "USD",
+            "amount": 0
+          },
+          "numberOfPieces": 3,
+          "pickupDate": "2024-09-01T10:15:30Z",
+          "deliveryStatus": "In Transit",
+          "deliveryDate": "2024-09-05T15:30:00Z",
+          "deliveryAttempts": 1,
+          "shippingType": "INT",
+          "productCategory": "Documents",
+          "productType": "Same Day",
+          "descriptionOfGoods": "Smartphones",
+          "hsCodeDescription": "Mobile phones classified under HS code 851712",
+          "dimensions": {
+            "length": 150.5,
+            "width": 75.2,
+            "height": 55.3,
+            "unit": "CM"
+          }
+        },
+        "x-readme-ref-name": "ShipmentDetailsDto"
+      },
+      "ShipmentDto": {
+        "type": "object",
+        "description": "Represents the overall details of a shipment.",
+        "required": [
+          "trackingNumber",
+          "sender",
+          "receiver",
+          "details"
+        ],
+        "properties": {
+          "trackingNumber": {
+            "type": "string",
+            "description": "A unique code assigned by the shipping company to monitor and trace the shipment’s progress.",
+            "example": "TRACK1234567890",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "sender": {
+            "type": "object",
+            "description": "Represents the contact and address details of the sender.",
+            "required": [
+              "name",
+              "phone",
+              "countryCode",
+              "city"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the person or company sending the shipment.",
+                "example": "John Doe",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "email": {
+                "type": "string",
+                "description": "The email address of the person or company sending the shipment.",
+                "example": "john.doe@example.com",
+                "minLength": 0,
+                "maxLength": 255,
+                "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+              },
+              "phone": {
+                "type": "string",
+                "description": "The phone number of the person or company sending the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+                "example": "+11234567890",
+                "minLength": 1,
+                "maxLength": 50,
+                "pattern": "^\\+?[1-9]\\d{1,14}$"
+              },
+              "secondPhone": {
+                "type": "string",
+                "description": "An additional phone number of the person or company sending the shipment.",
+                "example": "+10987654321",
+                "minLength": 0,
+                "maxLength": 50,
+                "pattern": "^\\+?[1-9]\\d{1,14}$"
+              },
+              "countryCode": {
+                "type": "string",
+                "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+                "example": "US",
+                "minLength": 2,
+                "maxLength": 2
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region of the address.",
+                "example": "California",
+                "minLength": 0,
+                "maxLength": 100
+              },
+              "postCode": {
+                "type": "string",
+                "description": "The postal code or ZIP code of the address.",
+                "example": "90210",
+                "minLength": 0,
+                "maxLength": 20
+              },
+              "city": {
+                "type": "string",
+                "description": "The city name of the address.",
+                "example": "Beverly Hills",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the address, typically including street name and number.",
+                "example": "1234 Elm Street",
+                "minLength": 0,
+                "maxLength": 500
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+                "example": "Apt 101",
+                "minLength": 0,
+                "maxLength": 500
+              },
+              "line3": {
+                "type": "string",
+                "description": "The third line of the address, often used for further details if needed.",
+                "example": "Building A, Floor 2",
+                "minLength": 0,
+                "maxLength": 500
+              }
+            },
+            "example": {
+              "name": "Jane Smith",
+              "email": "jane.smith@example.com",
+              "phone": "+11234567890",
+              "secondPhone": "+10987654321",
+              "countryCode": "US",
+              "state": "Texas",
+              "postCode": "73301",
+              "city": "Austin",
+              "line1": "5678 Oak Avenue",
+              "line2": "Suite 202",
+              "line3": "Warehouse B"
+            },
+            "x-readme-ref-name": "SenderDto"
+          },
+          "receiver": {
+            "type": "object",
+            "description": "Represents the contact and address details of the receiver.",
+            "required": [
+              "name",
+              "phone",
+              "countryCode",
+              "city"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the person or company receiving the shipment.",
+                "example": "John Doe",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "email": {
+                "type": "string",
+                "description": "The email address of the person or company receiving the shipment.",
+                "example": "john.doe@example.com",
+                "minLength": 0,
+                "maxLength": 255,
+                "pattern": "^[\\w\\.-]+@[a-zA-Z\\d\\.-]+\\.[a-zA-Z]{2,}$"
+              },
+              "phone": {
+                "type": "string",
+                "description": "The phone number of the person or company receiving the shipment. The phone number should be in international format, starting with a + followed by the country code, then the area code and local number.",
+                "example": "+11234567890",
+                "minLength": 1,
+                "maxLength": 50,
+                "pattern": "^\\+?[1-9]\\d{1,14}$"
+              },
+              "secondPhone": {
+                "type": "string",
+                "description": "An additional phone number of the person or company receiving the shipment.",
+                "example": "+10987654321",
+                "minLength": 0,
+                "maxLength": 50,
+                "pattern": "^\\+?[1-9]\\d{1,14}$"
+              },
+              "countryCode": {
+                "type": "string",
+                "description": "The country code of the address, typically in ISO 3166-1 alpha-2 format. For a full list of country codes, see the ISO website www.iso.org/obp/ui/#search",
+                "example": "US",
+                "minLength": 2,
+                "maxLength": 2
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region of the address.",
+                "example": "California",
+                "minLength": 0,
+                "maxLength": 100
+              },
+              "postCode": {
+                "type": "string",
+                "description": "The postal code or Zip Code of the address.",
+                "example": "90210",
+                "minLength": 0,
+                "maxLength": 20
+              },
+              "city": {
+                "type": "string",
+                "description": "The city name of the address.",
+                "example": "Beverly Hills",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the address, typically including street name and number.",
+                "example": "1234 Elm Street",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the address, typically used for additional information such as apartment or suite number.",
+                "example": "Apt 101",
+                "minLength": 0,
+                "maxLength": 500
+              },
+              "line3": {
+                "type": "string",
+                "description": "The third line of the address, often used for further details if needed.",
+                "example": "Building A, Floor 2",
+                "minLength": 0,
+                "maxLength": 500
+              }
+            },
+            "example": {
+              "name": "John Doe",
+              "email": "john.doe@example.com",
+              "phone": "+11234567890",
+              "secondPhone": "+10987654321",
+              "countryCode": "US",
+              "state": "California",
+              "postCode": "90210",
+              "city": "Beverly Hills",
+              "line1": "1234 Elm Street",
+              "line2": "Apt 101",
+              "line3": "Building A, Floor 2"
+            },
+            "x-readme-ref-name": "ReceiverDto"
+          },
+          "details": {
+            "type": "object",
+            "description": "Represents the detailed information about a shipment.",
+            "required": [
+              "weight",
+              "declaredWeight",
+              "numberOfPieces",
+              "pickupDate",
+              "shippingType",
+              "productCategory",
+              "productType",
+              "descriptionOfGoods"
+            ],
+            "properties": {
+              "weight": {
+                "description": "The weight provided by the customer or the volumetric or gross weight, whichever is higher.",
+                "type": "object",
+                "required": [
+                  "unit",
+                  "value"
+                ],
+                "properties": {
+                  "unit": {
+                    "type": "string",
+                    "description": "The unit of measurement used for the weight of the Shipment.",
+                    "example": "KG",
+                    "minLength": 2,
+                    "maxLength": 2,
+                    "enum": [
+                      "KG",
+                      "LB"
+                    ]
+                  },
+                  "value": {
+                    "type": "number",
+                    "description": "The weight value.",
+                    "example": 10,
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "maximum": 999999,
+                    "exclusiveMaximum": true
+                  }
+                },
+                "example": {
+                  "unit": "KG",
+                  "value": 10
+                },
+                "x-readme-ref-name": "WeightDto"
+              },
+              "declaredWeight": {
+                "description": "The weight used for billing purposes to charge your customer.",
+                "type": "object",
+                "required": [
+                  "unit",
+                  "value"
+                ],
+                "properties": {
+                  "unit": {
+                    "type": "string",
+                    "description": "The unit of measurement used for the weight of the Shipment.",
+                    "example": "KG",
+                    "minLength": 2,
+                    "maxLength": 2,
+                    "enum": [
+                      "KG",
+                      "LB"
+                    ]
+                  },
+                  "value": {
+                    "type": "number",
+                    "description": "The weight value.",
+                    "example": 10,
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "maximum": 999999,
+                    "exclusiveMaximum": true
+                  }
+                },
+                "example": {
+                  "unit": "KG",
+                  "value": 10
+                },
+                "x-readme-ref-name": "WeightDto"
+              },
+              "cod": {
+                "type": "object",
+                "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                "required": [
+                  "currencyCode",
+                  "amount"
+                ],
+                "properties": {
+                  "currencyCode": {
+                    "type": "string",
+                    "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "example": "USD"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                    "minimum": 0.01,
+                    "example": 100
+                  }
+                },
+                "example": {
+                  "currencyCode": "USD",
+                  "amount": 100
+                },
+                "x-readme-ref-name": "MoneyDto"
+              },
+              "customs": {
+                "type": "object",
+                "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                "required": [
+                  "currencyCode",
+                  "amount"
+                ],
+                "properties": {
+                  "currencyCode": {
+                    "type": "string",
+                    "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "example": "USD"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                    "minimum": 0.01,
+                    "example": 100
+                  }
+                },
+                "example": {
+                  "currencyCode": "USD",
+                  "amount": 100
+                },
+                "x-readme-ref-name": "MoneyDto"
+              },
+              "deliveryCharges": {
+                "type": "object",
+                "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                "required": [
+                  "currencyCode",
+                  "amount"
+                ],
+                "properties": {
+                  "currencyCode": {
+                    "type": "string",
+                    "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "example": "USD"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                    "minimum": 0.01,
+                    "example": 100
+                  }
+                },
+                "example": {
+                  "currencyCode": "USD",
+                  "amount": 100
+                },
+                "x-readme-ref-name": "MoneyDto"
+              },
+              "numberOfPieces": {
+                "type": "integer",
+                "description": "The total count of individual items or packages in the shipment.",
+                "example": 3,
+                "minimum": 1
+              },
+              "pickupDate": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The date on which the shipment was collected.",
+                "example": "2024-09-01T10:15:30Z"
+              },
+              "deliveryStatus": {
+                "type": "string",
+                "description": "The current status of the shipment.",
+                "example": "In Transit"
+              },
+              "deliveryDate": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The date on which the shipment was actually delivered.",
+                "example": "2024-09-05T15:30:00Z"
+              },
+              "deliveryAttempts": {
+                "type": "integer",
+                "description": "The number of delivery attempts.",
+                "example": 1
+              },
+              "shippingType": {
+                "type": "string",
+                "description": "Specifies whether the shipment is Domestic or International.",
+                "example": "INT",
+                "minLength": 3,
+                "maxLength": 3,
+                "enum": [
+                  "INT",
+                  "DOM"
+                ]
+              },
+              "productCategory": {
+                "type": "string",
+                "description": "Defines the shipment category, such as Documents and Non-Documents.",
+                "example": "Documents",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "productType": {
+                "type": "string",
+                "description": "Represents the service level of the shipment, such as Non-Priority, Standard, Priority, Premium, Same Day, Next Day, etc.",
+                "example": "Same Day",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "descriptionOfGoods": {
+                "type": "string",
+                "description": "Provides a detailed description of the items in the shipment.",
+                "example": "Smartphones",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "hsCodeDescription": {
+                "type": "string",
+                "description": "Describes the goods based on the Harmonized System (HS) code, used for international trade classification.",
+                "minLength": 50,
+                "maxLength": 200
+              },
+              "dimensions": {
+                "type": "object",
+                "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+                "required": [
+                  "length",
+                  "width",
+                  "height",
+                  "unit"
+                ],
+                "properties": {
+                  "length": {
+                    "type": "number",
+                    "format": "double",
+                    "description": "Length must be greater than 0 and less than 99999.",
+                    "example": 150.5,
+                    "minimum": 0.01,
+                    "exclusiveMinimum": true,
+                    "maximum": 99999
+                  },
+                  "width": {
+                    "type": "number",
+                    "format": "double",
+                    "description": "Width must be greater than 0 and less than 99999.",
+                    "example": 75.2,
+                    "minimum": 0.01,
+                    "exclusiveMinimum": true,
+                    "maximum": 99999
+                  },
+                  "height": {
+                    "type": "number",
+                    "format": "double",
+                    "description": "Height must be greater than 0 and less than 99999.",
+                    "example": 55.3,
+                    "minimum": 0.01,
+                    "exclusiveMinimum": true,
+                    "maximum": 99999
+                  },
+                  "unit": {
+                    "type": "string",
+                    "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                    "minLength": 2,
+                    "maxLength": 2,
+                    "enum": [
+                      "CM",
+                      "IN"
+                    ],
+                    "example": "CM"
+                  }
+                },
+                "example": {
+                  "length": 150.5,
+                  "width": 75.2,
+                  "height": 55.3,
+                  "unit": "CM"
+                },
+                "x-readme-ref-name": "DimensionsDto"
+              }
+            },
+            "example": {
+              "weight": {
+                "unit": "KG",
+                "value": 10
+              },
+              "declaredWeight": {
+                "unit": "KG",
+                "value": 10
+              },
+              "cod": {
+                "currencyCode": "USD",
+                "amount": 0
+              },
+              "customs": {
+                "currencyCode": "USD",
+                "amount": 10
+              },
+              "deliveryCharges": {
+                "currencyCode": "USD",
+                "amount": 0
+              },
+              "numberOfPieces": 3,
+              "pickupDate": "2024-09-01T10:15:30Z",
+              "deliveryStatus": "In Transit",
+              "deliveryDate": "2024-09-05T15:30:00Z",
+              "deliveryAttempts": 1,
+              "shippingType": "INT",
+              "productCategory": "Documents",
+              "productType": "Same Day",
+              "descriptionOfGoods": "Smartphones",
+              "hsCodeDescription": "Mobile phones classified under HS code 851712",
+              "dimensions": {
+                "length": 150.5,
+                "width": 75.2,
+                "height": 55.3,
+                "unit": "CM"
+              }
+            },
+            "x-readme-ref-name": "ShipmentDetailsDto"
+          },
+          "items": {
+            "type": "array",
+            "description": "The details of the items contained in the shipment.",
+            "items": {
+              "type": "object",
+              "description": "Represents the details of an individual item within a shipment.",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "description": "A brief summary of the item's features or nature.",
+                  "example": "iPhone 14",
+                  "maxLength": 200
+                },
+                "countryOfOrigin": {
+                  "type": "string",
+                  "description": "The country where the item was manufactured.",
+                  "example": "CN",
+                  "maxLength": 2
+                },
+                "quantity": {
+                  "type": "number",
+                  "description": "The number of units of a specific item.",
+                  "example": 2
+                },
+                "hsCode": {
+                  "type": "string",
+                  "description": "The Harmonized System code used for classifying goods in international trade.",
+                  "example": "851712",
+                  "maxLength": 100
+                },
+                "customsValue": {
+                  "type": "object",
+                  "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                  "required": [
+                    "currencyCode",
+                    "amount"
+                  ],
+                  "properties": {
+                    "currencyCode": {
+                      "type": "string",
+                      "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                      "minLength": 3,
+                      "maxLength": 3,
+                      "example": "USD"
+                    },
+                    "amount": {
+                      "type": "number",
+                      "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                      "minimum": 0.01,
+                      "example": 100
+                    }
+                  },
+                  "example": {
+                    "currencyCode": "USD",
+                    "amount": 100
+                  },
+                  "x-readme-ref-name": "MoneyDto"
+                },
+                "weight": {
+                  "type": "object",
+                  "description": "The weight of the Shipment.",
+                  "required": [
+                    "unit",
+                    "value"
+                  ],
+                  "properties": {
+                    "unit": {
+                      "type": "string",
+                      "description": "The unit of measurement used for the weight of the Shipment.",
+                      "example": "KG",
+                      "minLength": 2,
+                      "maxLength": 2,
+                      "enum": [
+                        "KG",
+                        "LB"
+                      ]
+                    },
+                    "value": {
+                      "type": "number",
+                      "description": "The weight value.",
+                      "example": 10,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 999999,
+                      "exclusiveMaximum": true
+                    }
+                  },
+                  "example": {
+                    "unit": "KG",
+                    "value": 10
+                  },
+                  "x-readme-ref-name": "WeightDto"
+                },
+                "dimensions": {
+                  "type": "object",
+                  "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+                  "required": [
+                    "length",
+                    "width",
+                    "height",
+                    "unit"
+                  ],
+                  "properties": {
+                    "length": {
+                      "type": "number",
+                      "format": "double",
+                      "description": "Length must be greater than 0 and less than 99999.",
+                      "example": 150.5,
+                      "minimum": 0.01,
+                      "exclusiveMinimum": true,
+                      "maximum": 99999
+                    },
+                    "width": {
+                      "type": "number",
+                      "format": "double",
+                      "description": "Width must be greater than 0 and less than 99999.",
+                      "example": 75.2,
+                      "minimum": 0.01,
+                      "exclusiveMinimum": true,
+                      "maximum": 99999
+                    },
+                    "height": {
+                      "type": "number",
+                      "format": "double",
+                      "description": "Height must be greater than 0 and less than 99999.",
+                      "example": 55.3,
+                      "minimum": 0.01,
+                      "exclusiveMinimum": true,
+                      "maximum": 99999
+                    },
+                    "unit": {
+                      "type": "string",
+                      "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                      "minLength": 2,
+                      "maxLength": 2,
+                      "enum": [
+                        "CM",
+                        "IN"
+                      ],
+                      "example": "CM"
+                    }
+                  },
+                  "example": {
+                    "length": 150.5,
+                    "width": 75.2,
+                    "height": 55.3,
+                    "unit": "CM"
+                  },
+                  "x-readme-ref-name": "DimensionsDto"
+                }
+              },
+              "example": {
+                "description": "iPhone 14",
+                "countryOfOrigin": "CN",
+                "quantity": 2,
+                "hsCode": "851712",
+                "customsValue": {
+                  "currencyCode": "USD",
+                  "amount": 500
+                },
+                "weight": {
+                  "unit": "KG",
+                  "value": 1.5
+                },
+                "dimensions": {
+                  "length": 30,
+                  "width": 20,
+                  "height": 10,
+                  "unit": "CM"
+                }
+              },
+              "x-readme-ref-name": "ShipmentItemDto"
+            }
+          }
+        },
+        "example": {
+          "trackingNumber": "TRACK1234567890",
+          "sender": {
+            "name": "Jane Smith",
+            "phone": "+11234567890",
+            "countryCode": "US",
+            "city": "Austin"
+          },
+          "receiver": {
+            "name": "John Doe",
+            "phone": "+11234567890",
+            "countryCode": "US",
+            "city": "Beverly Hills"
+          },
+          "details": {
+            "weight": {
+              "unit": "KG",
+              "value": 10
+            },
+            "declaredWeight": {
+              "unit": "KG",
+              "value": 10
+            },
+            "numberOfPieces": 3,
+            "pickupDate": "2024-09-01T10:15:30Z",
+            "shippingType": "INT",
+            "productCategory": "Documents",
+            "productType": "Same Day",
+            "descriptionOfGoods": "Smartphones"
+          },
+          "items": [
+            {
+              "description": "iPhone 14",
+              "countryOfOrigin": "CN",
+              "quantity": 2
+            }
+          ]
+        },
+        "x-readme-ref-name": "ShipmentDto"
+      },
+      "ShipmentItemDto": {
+        "type": "object",
+        "description": "Represents the details of an individual item within a shipment.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "A brief summary of the item's features or nature.",
+            "example": "iPhone 14",
+            "maxLength": 200
+          },
+          "countryOfOrigin": {
+            "type": "string",
+            "description": "The country where the item was manufactured.",
+            "example": "CN",
+            "maxLength": 2
+          },
+          "quantity": {
+            "type": "number",
+            "description": "The number of units of a specific item.",
+            "example": 2
+          },
+          "hsCode": {
+            "type": "string",
+            "description": "The Harmonized System code used for classifying goods in international trade.",
+            "example": "851712",
+            "maxLength": 100
+          },
+          "customsValue": {
+            "type": "object",
+            "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+            "required": [
+              "currencyCode",
+              "amount"
+            ],
+            "properties": {
+              "currencyCode": {
+                "type": "string",
+                "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                "minLength": 3,
+                "maxLength": 3,
+                "example": "USD"
+              },
+              "amount": {
+                "type": "number",
+                "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                "minimum": 0.01,
+                "example": 100
+              }
+            },
+            "example": {
+              "currencyCode": "USD",
+              "amount": 100
+            },
+            "x-readme-ref-name": "MoneyDto"
+          },
+          "weight": {
+            "type": "object",
+            "description": "The weight of the Shipment.",
+            "required": [
+              "unit",
+              "value"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string",
+                "description": "The unit of measurement used for the weight of the Shipment.",
+                "example": "KG",
+                "minLength": 2,
+                "maxLength": 2,
+                "enum": [
+                  "KG",
+                  "LB"
+                ]
+              },
+              "value": {
+                "type": "number",
+                "description": "The weight value.",
+                "example": 10,
+                "minimum": 0,
+                "exclusiveMinimum": true,
+                "maximum": 999999,
+                "exclusiveMaximum": true
+              }
+            },
+            "example": {
+              "unit": "KG",
+              "value": 10
+            },
+            "x-readme-ref-name": "WeightDto"
+          },
+          "dimensions": {
+            "type": "object",
+            "description": "Represents the dimensions of an object, including length, width, height, and the unit of measurement.",
+            "required": [
+              "length",
+              "width",
+              "height",
+              "unit"
+            ],
+            "properties": {
+              "length": {
+                "type": "number",
+                "format": "double",
+                "description": "Length must be greater than 0 and less than 99999.",
+                "example": 150.5,
+                "minimum": 0.01,
+                "exclusiveMinimum": true,
+                "maximum": 99999
+              },
+              "width": {
+                "type": "number",
+                "format": "double",
+                "description": "Width must be greater than 0 and less than 99999.",
+                "example": 75.2,
+                "minimum": 0.01,
+                "exclusiveMinimum": true,
+                "maximum": 99999
+              },
+              "height": {
+                "type": "number",
+                "format": "double",
+                "description": "Height must be greater than 0 and less than 99999.",
+                "example": 55.3,
+                "minimum": 0.01,
+                "exclusiveMinimum": true,
+                "maximum": 99999
+              },
+              "unit": {
+                "type": "string",
+                "description": "The unit of measurement for the dimensions. Must be exactly 2 characters and either \"CM\" or \"IN\".",
+                "minLength": 2,
+                "maxLength": 2,
+                "enum": [
+                  "CM",
+                  "IN"
+                ],
+                "example": "CM"
+              }
+            },
+            "example": {
+              "length": 150.5,
+              "width": 75.2,
+              "height": 55.3,
+              "unit": "CM"
+            },
+            "x-readme-ref-name": "DimensionsDto"
+          }
+        },
+        "example": {
+          "description": "iPhone 14",
+          "countryOfOrigin": "CN",
+          "quantity": 2,
+          "hsCode": "851712",
+          "customsValue": {
+            "currencyCode": "USD",
+            "amount": 500
+          },
+          "weight": {
+            "unit": "KG",
+            "value": 1.5
+          },
+          "dimensions": {
+            "length": 30,
+            "width": 20,
+            "height": 10,
+            "unit": "CM"
+          }
+        },
+        "x-readme-ref-name": "ShipmentItemDto"
+      },
+      "ShipmentInvoiceDto": {
+        "type": "object",
+        "description": "Represents the invoice details for a shipment, including tracking number, chargeable weight, and charges.",
+        "required": [
+          "trackingNumber",
+          "chargeableWeight",
+          "charges",
+          "invoice"
+        ],
+        "properties": {
+          "trackingNumber": {
+            "type": "string",
+            "description": "The unique tracking number associated with the shipment.",
+            "example": "TRACK1234567890",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "chargeableWeight": {
+            "type": "object",
+            "description": "The weight of the Shipment.",
+            "required": [
+              "unit",
+              "value"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string",
+                "description": "The unit of measurement used for the weight of the Shipment.",
+                "example": "KG",
+                "minLength": 2,
+                "maxLength": 2,
+                "enum": [
+                  "KG",
+                  "LB"
+                ]
+              },
+              "value": {
+                "type": "number",
+                "description": "The weight value.",
+                "example": 10,
+                "minimum": 0,
+                "exclusiveMinimum": true,
+                "maximum": 999999,
+                "exclusiveMaximum": true
+              }
+            },
+            "example": {
+              "unit": "KG",
+              "value": 10
+            },
+            "x-readme-ref-name": "WeightDto"
+          },
+          "charges": {
+            "type": "array",
+            "description": "The list of charges associated with the shipment.",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "description": "Represents a charge associated with a shipment or transaction.",
+              "required": [
+                "type",
+                "amount"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "The type of the charge. All applicable costs associated with the Shipment. Possible values are; Base Rate, fuel Surcharge, insurance, War risk, handling and packing fees, and other charges. It can not exceed 100 characters",
+                  "example": "Base Rate",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "amount": {
+                  "type": "object",
+                  "description": "Represents a monetary value including the currency and amount. For a full list of currency codes www.iso.org/iso-4217-currency-codes.html",
+                  "required": [
+                    "currencyCode",
+                    "amount"
+                  ],
+                  "properties": {
+                    "currencyCode": {
+                      "type": "string",
+                      "description": "The three-letter ISO currency code. Must be exactly 3 characters long and must be a valid currency code as defined by the system.",
+                      "minLength": 3,
+                      "maxLength": 3,
+                      "example": "USD"
+                    },
+                    "amount": {
+                      "type": "number",
+                      "description": "The amount of money, expressed as a decimal value. Must be 0 or more.",
+                      "minimum": 0.01,
+                      "example": 100
+                    }
+                  },
+                  "example": {
+                    "currencyCode": "USD",
+                    "amount": 100
+                  },
+                  "x-readme-ref-name": "MoneyDto"
+                }
+              },
+              "example": {
+                "type": "Base Rate",
+                "amount": {
+                  "currencyCode": "USD",
+                  "amount": 150
+                }
+              },
+              "x-readme-ref-name": "ChargeDto"
+            }
+          },
+          "invoice": {
+            "type": "object",
+            "description": "Represents the details of an invoice.",
+            "required": [
+              "invoiceNumber",
+              "invoiceDate",
+              "billingAccountNumber",
+              "billingAccountName",
+              "taxAmount",
+              "totalAmountIncludingTax",
+              "currencyCode"
+            ],
+            "properties": {
+              "invoiceNumber": {
+                "type": "string",
+                "description": "The invoice number of the shipment. Must not exceed 100 characters.",
+                "minLength": 1,
+                "maxLength": 100,
+                "example": "INV-123456"
+              },
+              "invoiceDate": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The date and time of the invoice.",
+                "example": "2024-09-01T10:15:30Z"
+              },
+              "billingAccountNumber": {
+                "type": "string",
+                "description": "The billing account number associated with the invoice. Must not exceed 100 characters.",
+                "minLength": 1,
+                "maxLength": 100,
+                "example": "ACC-654321"
+              },
+              "billingAccountName": {
+                "type": "string",
+                "description": "The billing account name associated with the invoice. Must not exceed 500 characters.",
+                "minLength": 1,
+                "maxLength": 500,
+                "example": "ABC Corporation"
+              },
+              "totalDiscountAmount": {
+                "type": "number",
+                "description": "The total discount amount applied to the invoice. Must be 0 or more.",
+                "minimum": 0,
+                "example": 50
+              },
+              "taxAmount": {
+                "type": "number",
+                "description": "The tax amount applied to the invoice. Must be 0 or more.",
+                "minimum": 0.01,
+                "example": 50
+              },
+              "totalAmountIncludingTax": {
+                "type": "number",
+                "description": "The total amount including tax for the invoice. Must be 0 or more and greater than the TaxAmount.",
+                "minimum": 0.01,
+                "example": 550
+              },
+              "currencyCode": {
+                "type": "string",
+                "description": "The three-letter ISO currency code. Must be exactly 3 characters and valid.",
+                "minLength": 3,
+                "maxLength": 3,
+                "example": "USD"
+              }
+            },
+            "example": {
+              "invoiceNumber": "INV-123456",
+              "invoiceDate": "2024-09-01T10:15:30Z",
+              "billingAccountNumber": "ACC-654321",
+              "billingAccountName": "ABC Corporation",
+              "totalDiscountAmount": 20,
+              "taxAmount": 50,
+              "totalAmountIncludingTax": 550,
+              "currencyCode": "USD"
+            },
+            "x-readme-ref-name": "InvoiceDto"
+          }
+        },
+        "example": {
+          "trackingNumber": "TRACK1234567890",
+          "chargeableWeight": {
+            "unit": "KG",
+            "value": 10
+          },
+          "charges": [
+            {
+              "type": "Base Rate",
+              "amount": {
+                "currencyCode": "USD",
+                "amount": 150
+              }
+            }
+          ],
+          "invoice": {
+            "invoiceNumber": "INV-123456",
+            "invoiceDate": "2024-09-01T10:15:30Z",
+            "billingAccountNumber": "ACC-654321",
+            "billingAccountName": "Acme Corporation",
+            "totalDiscountAmount": 20,
+            "taxAmount": 50,
+            "totalAmountIncludingTax": 550,
+            "currencyCode": "USD"
+          }
+        },
+        "x-readme-ref-name": "ShipmentInvoiceDto"
+      },
+      "WeightDto": {
+        "type": "object",
+        "description": "The weight of the Shipment.",
+        "required": [
+          "unit",
+          "value"
+        ],
+        "properties": {
+          "unit": {
+            "type": "string",
+            "description": "The unit of measurement used for the weight of the Shipment.",
+            "example": "KG",
+            "minLength": 2,
+            "maxLength": 2,
+            "enum": [
+              "KG",
+              "LB"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "description": "The weight value.",
+            "example": 10,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 999999,
+            "exclusiveMaximum": true
+          }
+        },
+        "example": {
+          "unit": "KG",
+          "value": 10
+        },
+        "x-readme-ref-name": "WeightDto"
+      }
+    }
+  },
+  "x-readme": {
+    "explorer-enabled": true,
+    "proxy-enabled": true
+  }
+}

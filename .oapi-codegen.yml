@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/refs/heads/main/configuration-schema.json
+package: epglgo
+output: api.gen.go
+generate:
+  models: true
+  client: true
