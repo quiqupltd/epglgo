@@ -19,12 +19,24 @@ This project uses **git-flow** for development:
 ```
 .
 ├── api.gen.go           # Generated client code (DO NOT EDIT)
+├── otel.go              # Manual: OpenTelemetry tracing helpers
 ├── generate.go          # go:generate directive
 ├── .oapi-codegen.yml    # oapi-codegen configuration
 ├── spec/
 │   └── apispec.json     # OpenAPI 3.0 specification
 └── tmp/                 # Source API spec files (can be deleted after merge)
 ```
+
+### Generated vs Manual Code
+
+**Generated (DO NOT EDIT):**
+- `api.gen.go` - Client, models, and request/response types from OpenAPI spec
+
+**Manual (safe to edit):**
+- `otel.go` - OpenTelemetry tracing wrappers
+- Any other `*.go` files (except `api.gen.go`)
+
+When adding new features (like OTEL), always create separate files. Never modify `api.gen.go` directly as changes will be lost on regeneration.
 
 ## Code Generation
 
