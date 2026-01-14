@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-01-14
+
 ### Added
 
 - Initial Go client generated from OpenAPI spec
 - Authentication endpoint (`/api/v1/auth/authenticate`)
 - Create/Update shipment endpoint (`/api/v1/shipment/create`)
 - Create shipment invoice endpoint (`/api/v1/shipment/issueInvoice`)
+- GitHub Actions CI workflow (build, lint, generated code check)
+- GitHub Actions release workflow
+- Dependabot configuration
