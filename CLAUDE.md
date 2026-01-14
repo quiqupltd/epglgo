@@ -4,6 +4,16 @@
 
 Go client library for the EPGL Regulatory and Licensing API, generated from OpenAPI spec using oapi-codegen.
 
+## Git Workflow
+
+This project uses **git-flow** for development:
+
+- `main` - Production releases only
+- `develop` - Integration branch for features
+- `feature/*` - New features (branch from `develop`)
+- `release/*` - Release preparation
+- `hotfix/*` - Production hotfixes (branch from `main`)
+
 ## Project Structure
 
 ```
