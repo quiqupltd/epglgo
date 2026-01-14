@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Update minimum Go version to 1.24 for broader compatibility
+- Add Go 1.24/1.25 build matrix to CI workflow
+- Bump actions/checkout from v4 to v6
+- Bump actions/setup-go from v5 to v6
+
 ## [1.0.0] - 2026-01-14
 
 ### Added
