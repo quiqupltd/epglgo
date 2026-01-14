@@ -33,6 +33,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
+          go-version-file: go.mod
           version: latest
 
   generated:
