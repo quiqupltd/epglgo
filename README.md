@@ -55,6 +55,37 @@ client, err := epglgo.NewClient("https://api-stg.epgl.ae",
 )
 ```
 
+### OpenTelemetry Tracing
+
+The client supports OpenTelemetry tracing out of the box. Use the OTEL-enabled constructors to automatically instrument all HTTP requests with distributed tracing:
+
+```go
+// Create a client with OpenTelemetry tracing
+client, err := epglgo.NewClientWithResponsesWithOTEL("https://api-stg.epgl.ae")
+if err != nil {
+    log.Fatal(err)
+}
+
+// All requests will automatically create spans
+resp, err := client.AuthenticateClientWithResponse(ctx, epglgo.AuthenticateClientJSONRequestBody{
+    ClientId:     "your-client-id",
+    ClientSecret: "your-client-secret",
+})
+```
+
+You can combine OTEL tracing with other client options:
+
+```go
+client, err := epglgo.NewClientWithResponsesWithOTEL("https://api-stg.epgl.ae",
+    epglgo.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+        req.Header.Set("Authorization", "Bearer "+token)
+        return nil
+    }),
+)
+```
+
+**Note:** You must configure an OpenTelemetry trace provider in your application for traces to be exported. See the [OpenTelemetry Go documentation](https://opentelemetry.io/docs/languages/go/) for setup instructions.
+
 ## Development
 
 ### Regenerate client from OpenAPI spec
